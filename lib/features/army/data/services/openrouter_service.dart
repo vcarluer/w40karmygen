@@ -40,18 +40,8 @@ class OpenRouterService {
   }
 
   Future<String> recognizeUnit(Uint8List imageBytes) async {
-    // First, upload the image to a temporary storage service
-    final uploadResponse = await http.post(
-      Uri.parse('https://tmpfiles.org/api/v1/upload'),
-      body: imageBytes,
-    );
-
-    if (uploadResponse.statusCode != 200) {
-      throw Exception('Failed to upload image: ${uploadResponse.body}');
-    }
-
-    final uploadData = jsonDecode(uploadResponse.body);
-    final imageUrl = uploadData['data']['url'];
+    final base64Image = base64Encode(imageBytes);
+    final dataUrl = 'data:image/jpeg;base64,$base64Image';
     
     final response = await http.post(
       Uri.parse('$_baseUrl/chat/completions'),
@@ -72,7 +62,9 @@ class OpenRouterService {
             'content': [
               {
                 'type': 'image_url',
-                'image_url': imageUrl
+                'image_url': {
+                  'url': dataUrl
+                }
               },
               {
                 'type': 'text',
