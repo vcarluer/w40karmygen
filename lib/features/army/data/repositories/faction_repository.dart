@@ -11,7 +11,7 @@ class FactionRepository {
     try {
       final lines = await fileRepository.readCsvLines(fileName);
       
-      return lines.map((line) {
+      final factions = lines.map((line) {
         final parts = line.split('|');
         if (parts.length < 3) {
           throw FormatException('Invalid faction data format: $line');
@@ -22,6 +22,11 @@ class FactionRepository {
           link: parts[2].trim(),
         );
       }).toList();
+
+      // Tri par ordre alphabétique du nom
+      factions.sort((a, b) => a.name.compareTo(b.name));
+      
+      return factions;
     } catch (e) {
       throw Exception('Error loading factions: $e');
     }

@@ -11,7 +11,7 @@ class DatasheetCostRepository {
     try {
       final lines = await fileRepository.readCsvLines(fileName);
       
-      return lines.map((line) {
+      final costs = lines.map((line) {
         final parts = line.split('|');
         if (parts.length < 4) {
           throw FormatException('Invalid datasheet cost data format: $line');
@@ -24,6 +24,11 @@ class DatasheetCostRepository {
           cost: int.parse(parts[3]),
         );
       }).toList();
+
+      // Tri par ordre alphabétique de la description
+      costs.sort((a, b) => a.description.compareTo(b.description));
+      
+      return costs;
     } catch (e) {
       throw Exception('Error loading datasheet costs: $e');
     }

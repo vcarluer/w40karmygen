@@ -11,7 +11,7 @@ class DatasheetRepository {
     try {
       final lines = await fileRepository.readCsvLines(fileName);
       
-      return lines.map((line) {
+      final datasheets = lines.map((line) {
         final parts = line.split('|');
         if (parts.length < 14) {
           throw FormatException('Invalid datasheet data format: $line');
@@ -34,6 +34,11 @@ class DatasheetRepository {
           link: parts[13],
         );
       }).toList();
+
+      // Tri par ordre alphabétique du nom
+      datasheets.sort((a, b) => a.name.compareTo(b.name));
+      
+      return datasheets;
     } catch (e) {
       throw Exception('Error loading datasheets: $e');
     }
