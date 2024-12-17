@@ -14,9 +14,9 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final factions = ref.watch(factionListProvider);
     final selectedFaction = ref.watch(selectedFactionProvider);
-    final armyProvider = ref.watch(armyListProvider.notifier);
-    final filteredArmy = armyProvider.getFilteredUnits(selectedFaction?.id);
-    final totalPoints = armyProvider.getTotalPoints();
+    final army = ref.watch(armyListProvider);
+    final filteredArmy = ref.read(armyListProvider.notifier).getFilteredUnits(selectedFaction?.id);
+    final totalPoints = ref.read(armyListProvider.notifier).getTotalPoints();
 
     return Scaffold(
       appBar: AppBar(
