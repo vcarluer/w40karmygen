@@ -103,7 +103,8 @@ class HomePage extends ConsumerWidget {
         onPressed: () => _showGenerateDialog(context, ref),
         icon: const Icon(Icons.auto_awesome),
         label: const Text('Generate Army'),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         tooltip: 'Generate a new army list',
       ),
       body: Column(
