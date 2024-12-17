@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/optimized_army_provider.dart';
-import '../providers/optimizer_provider.dart';
-import '../../domain/models/optimized_army.dart';
+import '../providers/generated_army_provider.dart';
+import '../providers/generator_provider.dart';
+import '../../domain/models/generated_army.dart';
 
-class OptimizedArmiesPage extends ConsumerWidget {
-  const OptimizedArmiesPage({super.key});
+class GeneratedArmiesPage extends ConsumerWidget {
+  const GeneratedArmiesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final armies = ref.watch(optimizedArmiesProvider);
-    final optimizationResult = ref.watch(optimizationResultProvider);
+    final armies = ref.watch(generatedArmiesProvider);
+    final generationResult = ref.watch(generationResultProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Optimized Armies'),
+        title: const Text('Generated Armies'),
       ),
       body: Column(
         children: [
-          // Show optimization result while generating
-          optimizationResult.when(
+          // Show generation result while generating
+          generationResult.when(
             data: (result) => result != null
                 ? Container(
                     margin: const EdgeInsets.all(8),
@@ -43,7 +43,7 @@ class OptimizedArmiesPage extends ConsumerWidget {
                             IconButton(
                               icon: const Icon(Icons.close),
                               onPressed: () {
-                                ref.invalidate(optimizationResultProvider);
+                                ref.invalidate(generationResultProvider);
                               },
                             ),
                           ],
@@ -73,7 +73,7 @@ class OptimizedArmiesPage extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Error optimizing list: $error',
+                      'Error generating list: $error',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onErrorContainer,
                       ),
@@ -82,7 +82,7 @@ class OptimizedArmiesPage extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () {
-                      ref.invalidate(optimizationResultProvider);
+                      ref.invalidate(generationResultProvider);
                     },
                   ),
                 ],
@@ -93,7 +93,7 @@ class OptimizedArmiesPage extends ConsumerWidget {
           Expanded(
             child: armies.isEmpty
                 ? const Center(
-                    child: Text('No optimized armies yet'),
+                    child: Text('No generated armies yet'),
                   )
                 : ListView.builder(
                     itemCount: armies.length,
@@ -110,7 +110,7 @@ class OptimizedArmiesPage extends ConsumerWidget {
 }
 
 class _ArmyCard extends StatelessWidget {
-  final OptimizedArmy army;
+  final GeneratedArmy army;
 
   const _ArmyCard({required this.army});
 

@@ -89,7 +89,9 @@ class ArmyGeneratorService {
     buffer.writeln('5. Prioritizes using units from the collection when possible');
     buffer.writeln('6. Only uses units not in the collection when necessary for faction coherency or essential army roles');
     buffer.writeln('7. Follows army composition rules');
-    buffer.writeln('8. Marks any units not in the collection with "[NOT IN COLLECTION]" at the end of the unit line');
+    buffer.writeln('8. Marks any units not in the collection with "[NOT IN COLLECTION]" and includes their estimated price');
+    buffer.writeln('Example format for units not in collection:');
+    buffer.writeln('- Unit Name (points cost) [NOT IN COLLECTION] (\$49.99)');
     
     if (additionalInstructions != null && additionalInstructions.isNotEmpty) {
       buffer.writeln('9. Follows the special instructions provided');
@@ -103,12 +105,12 @@ class ArmyGeneratorService {
     buffer.writeln('\n[Army list content with points cost for each unit]');
     buffer.writeln('Example format for units:');
     buffer.writeln('- Unit Name (points cost)');
-    buffer.writeln('- Unit Name (points cost) [NOT IN COLLECTION]');
+    buffer.writeln('- Unit Name (points cost) [NOT IN COLLECTION] (\$49.99)');
     buffer.writeln('\nStrategy:');
     buffer.writeln('[Strategy explanation]');
-    buffer.writeln('\nTotal Points: [Total points cost]');
     buffer.writeln('\nRequired Purchases:');
-    buffer.writeln('[List of all units marked with [NOT IN COLLECTION]]');
+    buffer.writeln('[List of all units marked with [NOT IN COLLECTION] with their prices]');
+    buffer.writeln('Total Cost: \$299.99');
 
     return buffer.toString();
   }

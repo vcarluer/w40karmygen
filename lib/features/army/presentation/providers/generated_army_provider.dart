@@ -3,19 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import '../../domain/models/optimized_army.dart';
+import '../../domain/models/generated_army.dart';
 import '../../domain/models/faction.dart';
 
-part 'optimized_army_provider.g.dart';
+part 'generated_army_provider.g.dart';
 
-const String _storageKey = 'optimized_armies';
+const String _storageKey = 'generated_armies';
 
-@riverpod
-class OptimizedArmies extends _$OptimizedArmies {
+@Riverpod(keepAlive: true)
+class GeneratedArmies extends _$GeneratedArmies {
   final _uuid = const Uuid();
 
   @override
-  List<OptimizedArmy> build() {
+  List<GeneratedArmy> build() {
     _loadArmies();
     return [];
   }
@@ -26,13 +26,13 @@ class OptimizedArmies extends _$OptimizedArmies {
     
     if (armiesJson != null) {
       final armies = armiesJson
-          .map((json) => OptimizedArmy.fromJson(jsonDecode(json)))
+          .map((json) => GeneratedArmy.fromJson(jsonDecode(json)))
           .toList();
       state = armies;
     }
   }
 
-  Future<void> _saveArmies(List<OptimizedArmy> armies) async {
+  Future<void> _saveArmies(List<GeneratedArmy> armies) async {
     final prefs = await SharedPreferences.getInstance();
     final armiesJson = armies
         .map((army) => jsonEncode(army.toJson()))
@@ -40,15 +40,17 @@ class OptimizedArmies extends _$OptimizedArmies {
     await prefs.setStringList(_storageKey, armiesJson);
   }
 
-  Future<void> addOptimizedArmy({
+  Future<void> addGeneratedArmy({
     required String name,
     required String description,
     required int pointsLimit,
     required String armyList,
     required String strategy,
+    required String requiredPurchases,
+    required double totalPurchaseCost,
     Faction? faction,
   }) async {
-    final optimizedArmy = OptimizedArmy(
+    final generatedArmy = GeneratedArmy(
       id: _uuid.v4(),
       name: name,
       description: description,
@@ -57,14 +59,16 @@ class OptimizedArmies extends _$OptimizedArmies {
       strategy: strategy,
       createdAt: DateTime.now(),
       faction: faction,
+      requiredPurchases: requiredPurchases,
+      totalPurchaseCost: totalPurchaseCost,
     );
 
-    final newState = [...state, optimizedArmy];
+    final newState = [...state, generatedArmy];
     state = newState;
     await _saveArmies(newState);
   }
 
-  Future<void> removeOptimizedArmy(String id) async {
+  Future<void> removeGeneratedArmy(String id) async {
     final newState = state.where((army) => army.id != id).toList();
     state = newState;
     await _saveArmies(newState);

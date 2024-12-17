@@ -61,13 +61,30 @@ class GenerationResult extends _$GenerationResult {
         additionalInstructions: additionalInstructions,
       );
       
-      // Parse the result to extract name, army list and strategy
+      // Parse the result to extract name, army list, strategy, and purchases
       final nameMatch = RegExp(r'Name:\s*(.+)').firstMatch(result);
       final name = nameMatch?.group(1)?.trim() ?? 'Unnamed Army';
       
       final parts = result.split('\n\nStrategy:');
       final armyListPart = parts[0].replaceFirst(RegExp(r'Name:.*\n'), '').trim();
-      final strategy = parts.length > 1 ? parts[1].trim() : 'No strategy provided';
+      final strategyAndPurchases = parts.length > 1 ? parts[1].trim() : 'No strategy provided';
+
+      // Extract strategy and required purchases
+      final purchasesParts = strategyAndPurchases.split('\n\nRequired Purchases:');
+      final strategy = purchasesParts[0].trim();
+      String requiredPurchases = '';
+      double totalPurchaseCost = 0.0;
+
+      if (purchasesParts.length > 1) {
+        requiredPurchases = purchasesParts[1].trim();
+        // Extract total cost from the last line which should be "Total Cost: $X"
+        final costMatch = RegExp(r'Total Cost:\s*\$(\d+\.?\d*)').firstMatch(requiredPurchases);
+        if (costMatch != null) {
+          totalPurchaseCost = double.parse(costMatch.group(1) ?? '0');
+          // Remove the total cost line from required purchases
+          requiredPurchases = requiredPurchases.replaceFirst(RegExp(r'\nTotal Cost:.*$'), '');
+        }
+      }
 
       // Store the generated army
       await ref.read(generatedArmiesProvider.notifier).addGeneratedArmy(
@@ -77,6 +94,8 @@ class GenerationResult extends _$GenerationResult {
         armyList: armyListPart,
         strategy: strategy,
         faction: faction,
+        requiredPurchases: requiredPurchases,
+        totalPurchaseCost: totalPurchaseCost,
       );
       
       state = AsyncValue.data(result);
