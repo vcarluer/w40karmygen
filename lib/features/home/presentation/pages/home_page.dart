@@ -88,11 +88,11 @@ class HomePage extends ConsumerWidget {
             onPressed: () {
               final points = int.tryParse(controller.text);
               if (points != null && points > 0) {
-                ref.read(optimizationResultProvider.notifier).optimizeList(points);
                 Navigator.of(context).pop();
+                showOptimizationDialog(context, ref, points);
               }
             },
-            child: const Text('Optimize'),
+            child: const Text('Next'),
           ),
         ],
       ),

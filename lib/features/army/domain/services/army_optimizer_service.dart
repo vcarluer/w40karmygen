@@ -7,9 +7,19 @@ class ArmyOptimizerService {
 
   ArmyOptimizerService(this._openRouterService);
 
-  Future<String> optimizeArmyList(List<Unit> collection, Faction? selectedFaction, int pointsLimit) async {
+  Future<String> optimizeArmyList(
+    List<Unit> collection, 
+    Faction? selectedFaction, 
+    int pointsLimit,
+    {String? additionalInstructions}
+  ) async {
     // Create a prompt that describes the available units and constraints
-    final prompt = _createOptimizationPrompt(collection, selectedFaction, pointsLimit);
+    final prompt = _createOptimizationPrompt(
+      collection, 
+      selectedFaction, 
+      pointsLimit,
+      additionalInstructions: additionalInstructions
+    );
     
     try {
       return await _openRouterService.generateOptimizedList(prompt);
@@ -18,13 +28,23 @@ class ArmyOptimizerService {
     }
   }
 
-  String _createOptimizationPrompt(List<Unit> collection, Faction? selectedFaction, int pointsLimit) {
+  String _createOptimizationPrompt(
+    List<Unit> collection, 
+    Faction? selectedFaction, 
+    int pointsLimit,
+    {String? additionalInstructions}
+  ) {
     final buffer = StringBuffer();
     buffer.writeln('Create an optimized Warhammer 40,000 army list with the following constraints:');
     buffer.writeln('Points Limit: $pointsLimit points');
     
     if (selectedFaction != null) {
       buffer.writeln('Faction: ${selectedFaction.name}');
+    }
+
+    if (additionalInstructions != null && additionalInstructions.isNotEmpty) {
+      buffer.writeln('\nSpecial Instructions:');
+      buffer.writeln(additionalInstructions);
     }
 
     buffer.writeln('\nAvailable units from collection:');
@@ -37,7 +57,12 @@ class ArmyOptimizerService {
     buffer.writeln('2. Stays within the points limit');
     buffer.writeln('3. Uses only available units from the collection');
     buffer.writeln('4. Follows army composition rules');
-    buffer.writeln('5. Provides a brief explanation of the list\'s strategy');
+    if (additionalInstructions != null && additionalInstructions.isNotEmpty) {
+      buffer.writeln('5. Follows the special instructions provided');
+      buffer.writeln('6. Provides a brief explanation of the list\'s strategy');
+    } else {
+      buffer.writeln('5. Provides a brief explanation of the list\'s strategy');
+    }
 
     return buffer.toString();
   }

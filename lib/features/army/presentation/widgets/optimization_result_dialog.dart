@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/faction_provider.dart';
+import '../providers/optimizer_provider.dart';
+import '../../domain/models/faction.dart';
+import 'optimization_parameters_dialog.dart';
 
-class OptimizationResultDialog extends StatelessWidget {
+class OptimizationResultDialog extends ConsumerWidget {
   final String result;
 
   const OptimizationResultDialog({
@@ -9,13 +14,13 @@ class OptimizationResultDialog extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AlertDialog(
-      title: Row(
+      title: const Row(
         children: [
-          const Icon(Icons.auto_awesome),
-          const SizedBox(width: 8),
-          const Text('Optimized Army List'),
+          Icon(Icons.auto_awesome),
+          SizedBox(width: 8),
+          Text('Optimized Army List'),
         ],
       ),
       content: SingleChildScrollView(
@@ -38,4 +43,24 @@ class OptimizationResultDialog extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<void> showOptimizationDialog(BuildContext context, WidgetRef ref, int pointsLimit) async {
+  final factions = await ref.read(factionListProvider.future);
+  
+  if (!context.mounted) return;
+  
+  await showDialog(
+    context: context,
+    builder: (context) => OptimizationParametersDialog(
+      factions: factions,
+      onOptimize: (faction, instructions) {
+        ref.read(optimizationResultProvider.notifier).optimizeList(
+          pointsLimit,
+          faction: faction,
+          additionalInstructions: instructions,
+        );
+      },
+    ),
+  );
 }

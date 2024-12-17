@@ -1,0 +1,96 @@
+import 'package:flutter/material.dart';
+import '../../domain/models/faction.dart';
+
+class OptimizationParametersDialog extends StatefulWidget {
+  final List<Faction> factions;
+  final Function(Faction? faction, String? instructions) onOptimize;
+
+  const OptimizationParametersDialog({
+    super.key,
+    required this.factions,
+    required this.onOptimize,
+  });
+
+  @override
+  State<OptimizationParametersDialog> createState() => _OptimizationParametersDialogState();
+}
+
+class _OptimizationParametersDialogState extends State<OptimizationParametersDialog> {
+  Faction? selectedFaction;
+  final TextEditingController _instructionsController = TextEditingController();
+
+  @override
+  void dispose() {
+    _instructionsController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.settings),
+          SizedBox(width: 8),
+          Text('Army Optimization Parameters'),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Faction (optional):'),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<Faction>(
+              value: selectedFaction,
+              items: widget.factions.map((faction) {
+                return DropdownMenuItem(
+                  value: faction,
+                  child: Text(faction.name),
+                );
+              }).toList(),
+              onChanged: (Faction? value) {
+                setState(() {
+                  selectedFaction = value;
+                });
+              },
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Additional Instructions (optional):'),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _instructionsController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Enter any specific requirements or preferences...',
+                contentPadding: EdgeInsets.all(12),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            widget.onOptimize(
+              selectedFaction,
+              _instructionsController.text.isEmpty ? null : _instructionsController.text,
+            );
+            Navigator.of(context).pop();
+          },
+          child: const Text('Optimize'),
+        ),
+      ],
+    );
+  }
+}

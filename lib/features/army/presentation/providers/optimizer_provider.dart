@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/config/env.dart';
 import '../../data/services/openrouter_service.dart';
 import '../../domain/services/army_optimizer_service.dart';
+import '../../domain/models/faction.dart';
 import 'collection_provider.dart';
 import 'faction_provider.dart';
 
@@ -24,18 +25,22 @@ class OptimizationResult extends _$OptimizationResult {
     return const AsyncValue.data(null);
   }
 
-  Future<void> optimizeList(int pointsLimit) async {
+  Future<void> optimizeList(
+    int pointsLimit, {
+    Faction? faction,
+    String? additionalInstructions,
+  }) async {
     state = const AsyncValue.loading();
     
     try {
       final optimizer = ref.read(armyOptimizerServiceProvider);
       final collection = await ref.read(miniatureCollectionProvider.future);
-      final selectedFaction = ref.read(selectedFactionProvider);
       
       final result = await optimizer.optimizeArmyList(
         collection,
-        selectedFaction,
+        faction,
         pointsLimit,
+        additionalInstructions: additionalInstructions,
       );
       
       state = AsyncValue.data(result);
