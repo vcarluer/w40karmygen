@@ -57,14 +57,20 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
             const SizedBox(height: 16),
             const Text('Faction (optional):'),
             const SizedBox(height: 8),
-            DropdownButtonFormField<Faction>(
+            DropdownButtonFormField<Faction?>(
               value: selectedFaction,
-              items: widget.factions.map((faction) {
-                return DropdownMenuItem(
-                  value: faction,
-                  child: Text(faction.name),
-                );
-              }).toList(),
+              items: [
+                const DropdownMenuItem<Faction?>(
+                  value: null,
+                  child: Text('No Faction'),
+                ),
+                ...widget.factions.map((faction) {
+                  return DropdownMenuItem(
+                    value: faction,
+                    child: Text(faction.name),
+                  );
+                }),
+              ],
               onChanged: (Faction? value) {
                 setState(() {
                   selectedFaction = value;
@@ -102,11 +108,11 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
         ),
         FilledButton(
           onPressed: _nameController.text.trim().isEmpty
-              ? null
+              ? null // Only disable if name is empty
               : () {
                   widget.onOptimize(
                     _nameController.text.trim(),
-                    selectedFaction,
+                    selectedFaction, // Can be null
                     _instructionsController.text.isEmpty ? null : _instructionsController.text,
                   );
                   Navigator.of(context).pop();
