@@ -5,8 +5,10 @@ import '../../../army/domain/models/faction.dart';
 import '../../../army/domain/models/unit.dart';
 import '../../../army/presentation/providers/faction_provider.dart';
 import '../../../army/presentation/providers/collection_provider.dart';
+import '../../../army/presentation/providers/optimizer_provider.dart';
 import '../../../army/presentation/widgets/add_datasheet_dialog.dart';
 import '../../../army/presentation/widgets/add_unit_dialog.dart';
+import '../../../army/presentation/widgets/optimization_result_dialog.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -49,6 +51,54 @@ class HomePage extends ConsumerWidget {
     );
   }
 
+  Future<void> _showOptimizeDialog(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController(text: '2000');
+    
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Optimize Army List'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              decoration: const InputDecoration(
+                labelText: 'Points Limit',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'This will generate an optimized army list using OpenRouter AI.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final points = int.tryParse(controller.text);
+              if (points != null && points > 0) {
+                ref.read(optimizationResultProvider.notifier).optimizeList(points);
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Optimize'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final factions = ref.watch(factionListProvider);
@@ -56,13 +106,20 @@ class HomePage extends ConsumerWidget {
     final collection = ref.watch(miniatureCollectionProvider);
     final filteredCollection = ref.read(miniatureCollectionProvider.notifier).getFilteredUnits(selectedFaction?.id);
     final totalPoints = ref.read(miniatureCollectionProvider.notifier).getTotalPoints();
+    final optimizationResult = ref.watch(optimizationResultProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('W40K Miniature Collection'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'Optimize Army List',
+            onPressed: () => _showOptimizeDialog(context, ref),
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
+            tooltip: 'Add Unit',
             onPressed: () async {
               final unit = await showDialog<Unit>(
                 context: context,
@@ -130,6 +187,91 @@ class HomePage extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
+            ),
+          ),
+          optimizationResult.when(
+            data: (result) => result != null
+                ? Container(
+                    margin: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.auto_awesome),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Optimized Army List',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.open_in_new),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => OptimizationResultDialog(
+                                    result: result,
+                                  ),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                ref.invalidate(optimizationResultProvider);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          result,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            error: (error, _) => Container(
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Error optimizing list: $error',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      ref.invalidate(optimizationResultProvider);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
