@@ -29,6 +29,7 @@ class UnitSelectionDialog extends ConsumerStatefulWidget {
 class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   final _formKey = GlobalKey<FormState>();
   final _pointsController = TextEditingController();
+  final _scrollController = ScrollController();
   Datasheet? _selectedDatasheet;
   DatasheetCost? _selectedCost;
   int _quantity = 1;
@@ -49,6 +50,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   @override
   void dispose() {
     _pointsController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -58,6 +60,23 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
         _selectedCost = costs.first;
         _pointsController.text = costs.first.cost.toString();
       });
+    }
+  }
+
+  void _scrollToSelectedUnit(List<Datasheet> datasheets) {
+    if (_selectedDatasheet != null) {
+      final index = datasheets.indexWhere((d) => d.id == _selectedDatasheet!.id);
+      if (index != -1) {
+        final itemHeight = 56.0; // Approximate height of a ListTile
+        final listHeight = _scrollController.position.viewportDimension;
+        final scrollTo = (index * itemHeight) - (listHeight / 2) + (itemHeight / 2);
+        
+        _scrollController.animateTo(
+          scrollTo.clamp(0, _scrollController.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
@@ -127,6 +146,11 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
               .where((cost) => cost.datasheetId == matchingDatasheet.id)
               .toList();
           _selectFirstCostOption(costs);
+
+          // Scroll to the selected unit after a short delay to ensure the list is built
+          Future.delayed(const Duration(milliseconds: 100), () {
+            _scrollToSelectedUnit(datasheets);
+          });
         } else {
           throw Exception('No matching unit found for: ${result.unitName}');
         }
@@ -250,6 +274,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                     Expanded(
                       child: Card(
                         child: ListView.builder(
+                          controller: _scrollController,
                           itemCount: datasheets.length,
                           itemBuilder: (context, index) {
                             final datasheet = datasheets[index];
