@@ -61,6 +61,42 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
     }
   }
 
+  Datasheet? _findMatchingDatasheet(String unitName, List<Datasheet> datasheets) {
+    // Convert names to lowercase for case-insensitive comparison
+    final searchName = unitName.toLowerCase();
+    
+    // Try exact match first
+    final exactMatch = datasheets.firstWhere(
+      (datasheet) => datasheet.name.toLowerCase() == searchName,
+      orElse: () => datasheets[0], // Return first datasheet as fallback
+    );
+    if (exactMatch.name.toLowerCase() == searchName) {
+      return exactMatch;
+    }
+
+    // Try contains match
+    final containsMatch = datasheets.firstWhere(
+      (datasheet) => datasheet.name.toLowerCase().contains(searchName) || 
+                     searchName.contains(datasheet.name.toLowerCase()),
+      orElse: () => datasheets[0], // Return first datasheet as fallback
+    );
+    if (containsMatch.name.toLowerCase().contains(searchName) || 
+        searchName.contains(containsMatch.name.toLowerCase())) {
+      return containsMatch;
+    }
+
+    // Try word match
+    final searchWords = searchName.split(' ');
+    for (final datasheet in datasheets) {
+      final datasheetWords = datasheet.name.toLowerCase().split(' ');
+      if (searchWords.any((word) => datasheetWords.contains(word))) {
+        return datasheet;
+      }
+    }
+
+    return null;
+  }
+
   Future<void> _pickAndRecognizeImage() async {
     final ImagePicker picker = ImagePicker();
     try {
@@ -77,22 +113,23 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
 
         // Find the datasheet with the matching unit name
         final datasheets = ref.read(filteredDatasheetListProvider);
-        final matchingDatasheet = datasheets.firstWhere(
-          (datasheet) => datasheet.name.toLowerCase() == result.unitName.toLowerCase(),
-          orElse: () => throw Exception('Unit not found: ${result.unitName}'),
-        );
+        final matchingDatasheet = _findMatchingDatasheet(result.unitName, datasheets);
 
-        setState(() {
-          _selectedDatasheet = matchingDatasheet;
-          _recognizedFigurineName = result.figurineName;
-          _isRecognizing = false;
-        });
+        if (matchingDatasheet != null) {
+          setState(() {
+            _selectedDatasheet = matchingDatasheet;
+            _recognizedFigurineName = result.figurineName;
+            _isRecognizing = false;
+          });
 
-        // Auto-select first cost option
-        final costs = ref.read(datasheetCostNotifierProvider).value!
-            .where((cost) => cost.datasheetId == matchingDatasheet.id)
-            .toList();
-        _selectFirstCostOption(costs);
+          // Auto-select first cost option
+          final costs = ref.read(datasheetCostNotifierProvider).value!
+              .where((cost) => cost.datasheetId == matchingDatasheet.id)
+              .toList();
+          _selectFirstCostOption(costs);
+        } else {
+          throw Exception('No matching unit found for: ${result.unitName}');
+        }
       }
     } catch (e) {
       setState(() {
@@ -193,6 +230,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                       Text(
                         'Recognized Figurine: $_recognizedFigurineName',
                         style: Theme.of(context).textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ],

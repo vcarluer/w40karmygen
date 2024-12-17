@@ -62,7 +62,7 @@ class OpenRouterService {
         'messages': [
           {
             'role': 'system',
-            'content': 'You are a Warhammer 40,000 miniature recognition expert. Your goal is to identify both the specific figurine and its unit type from the image provided.',
+            'content': 'You are a Warhammer 40,000 miniature recognition expert. Your goal is to identify both the specific figurine and its corresponding unit name from the codex.',
           },
           {
             'role': 'user',
@@ -75,7 +75,7 @@ class OpenRouterService {
               },
               {
                 'type': 'text',
-                'text': 'Please provide two pieces of information about this Warhammer 40,000 miniature:\n1. The specific name of this figurine\n2. The unit type/name as it appears in the game data\nFormat your response exactly like this:\nFigurine: [figurine name]\nUnit: [unit name]'
+                'text': 'Please provide two pieces of information about this Warhammer 40,000 miniature:\n1. The specific name/variant of this figurine\n2. The exact unit name as it appears in the codex (this is important for matching)\nFormat your response exactly like this:\nFigurine: [specific figurine name/variant]\nUnit: [exact codex unit name]'
               }
             ]
           }
