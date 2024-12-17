@@ -299,6 +299,19 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                         ),
                       ),
                     ),
+                    if (_selectedDatasheet != null) ...[
+                      const SizedBox(height: 8),
+                      Card(
+                        child: ListTile(
+                          title: Text(
+                            'Selected Unit: ${_selectedDatasheet!.name}',
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
