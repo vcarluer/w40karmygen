@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:w40k_army_opti/core/theme/app_theme.dart';
 import 'package:w40k_army_opti/features/home/presentation/pages/home_page.dart';
 
 void main() {
-  runApp(const W40kArmyOptiApp());
+  runApp(
+    const ProviderScope(
+      child: W40kArmyOptiApp(),
+    ),
+  );
 }
 
 class W40kArmyOptiApp extends StatelessWidget {
