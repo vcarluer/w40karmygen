@@ -1,24 +1,35 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../data/repositories/file_repository.dart';
-import '../../data/repositories/faction_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/repositories/army_list_repository.dart';
+import '../../data/repositories/datasheet_cost_repository.dart';
 import '../../data/repositories/datasheet_repository.dart';
+import '../../data/repositories/faction_repository.dart';
+import '../../data/repositories/file_repository.dart';
 
 part 'repository_providers.g.dart';
 
 @riverpod
 FileRepository fileRepository(FileRepositoryRef ref) {
-  // Use the correct asset path format for Flutter
   return FileRepository(dataPath: 'assets/data');
 }
 
 @riverpod
 FactionRepository factionRepository(FactionRepositoryRef ref) {
-  final fileRepo = ref.watch(fileRepositoryProvider);
-  return FactionRepository(fileRepository: fileRepo);
+  return FactionRepository(fileRepository: ref.watch(fileRepositoryProvider));
 }
 
 @riverpod
 DatasheetRepository datasheetRepository(DatasheetRepositoryRef ref) {
-  final fileRepo = ref.watch(fileRepositoryProvider);
-  return DatasheetRepository(fileRepository: fileRepo);
+  return DatasheetRepository(fileRepository: ref.watch(fileRepositoryProvider));
+}
+
+@riverpod
+DatasheetCostRepository datasheetCostRepository(DatasheetCostRepositoryRef ref) {
+  return DatasheetCostRepository(fileRepository: ref.watch(fileRepositoryProvider));
+}
+
+@riverpod
+Future<ArmyListRepository> armyListRepository(ArmyListRepositoryRef ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return ArmyListRepository(prefs);
 }

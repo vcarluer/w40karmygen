@@ -6,12 +6,11 @@ part of 'army_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$armyListHash() => r'e563e828c3abd2db4c66347964e0bc5fad18ede1';
+String _$armyListHash() => r'2c5266b9071cf34a87bb2ab1641e8c6ab0b3f0ab';
 
 /// See also [ArmyList].
 @ProviderFor(ArmyList)
-final armyListProvider =
-    AutoDisposeNotifierProvider<ArmyList, List<Unit>>.internal(
+final armyListProvider = AsyncNotifierProvider<ArmyList, List<Unit>>.internal(
   ArmyList.new,
   name: r'armyListProvider',
   debugGetCreateSourceHash:
@@ -20,6 +19,6 @@ final armyListProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$ArmyList = AutoDisposeNotifier<List<Unit>>;
+typedef _$ArmyList = AsyncNotifier<List<Unit>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

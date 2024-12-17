@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/datasheet.dart';
+import '../../domain/models/datasheet_cost.dart';
 import '../../domain/models/faction.dart';
 import '../../domain/models/unit.dart';
 import '../providers/faction_provider.dart';
 import '../providers/dialog_faction_provider.dart';
 import '../providers/datasheet_provider.dart';
+import '../providers/datasheet_cost_provider.dart';
 
 class UnitSelectionDialog extends ConsumerStatefulWidget {
   const UnitSelectionDialog({
@@ -19,9 +21,10 @@ class UnitSelectionDialog extends ConsumerStatefulWidget {
 
 class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   final _formKey = GlobalKey<FormState>();
+  final _pointsController = TextEditingController();
   Datasheet? _selectedDatasheet;
+  DatasheetCost? _selectedCost;
   int _quantity = 1;
-  int _points = 0;
   String _notes = '';
 
   @override
@@ -35,10 +38,26 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   }
 
   @override
+  void dispose() {
+    _pointsController.dispose();
+    super.dispose();
+  }
+
+  void _selectFirstCostOption(List<DatasheetCost> costs) {
+    if (costs.isNotEmpty) {
+      setState(() {
+        _selectedCost = costs.first;
+        _pointsController.text = costs.first.cost.toString();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final factions = ref.watch(factionListProvider);
     final selectedFaction = ref.watch(dialogSelectedFactionProvider);
     final datasheets = ref.watch(filteredDatasheetListProvider);
+    final datasheetCosts = ref.watch(datasheetCostNotifierProvider);
 
     return Dialog(
       child: Container(
@@ -85,6 +104,8 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                     ref.read(dialogSelectedFactionProvider.notifier).select(faction);
                     setState(() {
                       _selectedDatasheet = null;
+                      _selectedCost = null;
+                      _pointsController.clear();
                     });
                   },
                 ),
@@ -115,6 +136,13 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                                 setState(() {
                                   _selectedDatasheet = datasheet;
                                 });
+                                // Auto-select first cost option when datasheet is selected
+                                if (datasheetCosts.value != null) {
+                                  final costs = datasheetCosts.value!
+                                      .where((cost) => cost.datasheetId == datasheet.id)
+                                      .toList();
+                                  _selectFirstCostOption(costs);
+                                }
                               },
                             );
                           },
@@ -136,6 +164,44 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
+                      // Cost options dropdown
+                      datasheetCosts.when(
+                        data: (costs) {
+                          final datasheetCosts = costs
+                              .where((cost) => cost.datasheetId == _selectedDatasheet!.id)
+                              .toList();
+                          return DropdownButtonFormField<DatasheetCost>(
+                            decoration: const InputDecoration(
+                              labelText: 'Unit Size',
+                              border: OutlineInputBorder(),
+                            ),
+                            value: _selectedCost,
+                            items: datasheetCosts.map((cost) => DropdownMenuItem<DatasheetCost>(
+                                  value: cost,
+                                  child: Text(cost.description),
+                                )).toList(),
+                            validator: (value) {
+                              if (value == null) {
+                                return 'Please select a unit size';
+                              }
+                              return null;
+                            },
+                            onChanged: (cost) {
+                              setState(() {
+                                _selectedCost = cost;
+                                if (cost != null) {
+                                  _pointsController.text = cost.cost.toString();
+                                } else {
+                                  _pointsController.clear();
+                                }
+                              });
+                            },
+                          );
+                        },
+                        loading: () => const CircularProgressIndicator(),
+                        error: (error, stack) => Text('Error loading costs: $error'),
+                      ),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
@@ -173,26 +239,12 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                                 labelText: 'Points',
                                 border: OutlineInputBorder(),
                               ),
-                              initialValue: _points.toString(),
+                              controller: _pointsController,
+                              enabled: false,
                               keyboardType: TextInputType.number,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter points';
-                                }
-                                final points = int.tryParse(value);
-                                if (points == null || points < 0) {
-                                  return 'Points must be 0 or greater';
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  _points = int.tryParse(value) ?? 0;
-                                });
-                              },
                             ),
                           ),
                         ],
@@ -224,7 +276,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
-                    onPressed: _selectedDatasheet == null
+                    onPressed: _selectedDatasheet == null || _selectedCost == null
                         ? null
                         : () {
                             if (_formKey.currentState!.validate()) {
@@ -232,7 +284,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                                 id: DateTime.now().toIso8601String(),
                                 datasheet: _selectedDatasheet!,
                                 quantity: _quantity,
-                                points: _points,
+                                points: int.parse(_pointsController.text),
                                 notes: _notes.isEmpty ? null : _notes,
                               );
                               Navigator.of(context).pop(unit);

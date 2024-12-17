@@ -15,6 +15,7 @@ dependencies:
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
   http: ^1.2.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -30,3 +31,4 @@ flutter:
   assets:
     - assets/data/Factions.csv
     - assets/data/Datasheets.csv
+    - assets/data/Datasheets_models_cost.csv

@@ -23,7 +23,7 @@ final fileRepositoryProvider = AutoDisposeProvider<FileRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FileRepositoryRef = AutoDisposeProviderRef<FileRepository>;
-String _$factionRepositoryHash() => r'3eff32e13271537a5aecbd5685f2ee76b7d078f3';
+String _$factionRepositoryHash() => r'9a3d14894407144545391ea9d7030af3d51881ce';
 
 /// See also [factionRepository].
 @ProviderFor(factionRepository)
@@ -42,7 +42,7 @@ final factionRepositoryProvider =
 // ignore: unused_element
 typedef FactionRepositoryRef = AutoDisposeProviderRef<FactionRepository>;
 String _$datasheetRepositoryHash() =>
-    r'4f1eba6825061ce193e5fbf97d62c92a518455cd';
+    r'6499c08d84eccdff0962ef63572352d11044ad46';
 
 /// See also [datasheetRepository].
 @ProviderFor(datasheetRepository)
@@ -60,5 +60,45 @@ final datasheetRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DatasheetRepositoryRef = AutoDisposeProviderRef<DatasheetRepository>;
+String _$datasheetCostRepositoryHash() =>
+    r'5f299833300104189631403c38387af89508d7fc';
+
+/// See also [datasheetCostRepository].
+@ProviderFor(datasheetCostRepository)
+final datasheetCostRepositoryProvider =
+    AutoDisposeProvider<DatasheetCostRepository>.internal(
+  datasheetCostRepository,
+  name: r'datasheetCostRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$datasheetCostRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef DatasheetCostRepositoryRef
+    = AutoDisposeProviderRef<DatasheetCostRepository>;
+String _$armyListRepositoryHash() =>
+    r'f9944d165e5e1f11feb526ee6083b0cce6825374';
+
+/// See also [armyListRepository].
+@ProviderFor(armyListRepository)
+final armyListRepositoryProvider =
+    AutoDisposeFutureProvider<ArmyListRepository>.internal(
+  armyListRepository,
+  name: r'armyListRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$armyListRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ArmyListRepositoryRef
+    = AutoDisposeFutureProviderRef<ArmyListRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -1,25 +1,41 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/unit.dart';
+import 'repository_providers.dart';
 
 part 'army_provider.g.dart';
 
-@riverpod
-class ArmyList extends _$ArmyList {
+@Riverpod(keepAlive: true)
+class ArmyList extends AsyncNotifier<List<Unit>> {
   @override
-  List<Unit> build() {
-    return [];
+  Future<List<Unit>> build() async {
+    final repository = await ref.watch(armyListRepositoryProvider.future);
+    return repository.loadArmyList();
   }
 
-  void addUnit(Unit unit) {
-    state = [...state, unit];
+  Future<void> addUnit(Unit unit) async {
+    final repository = await ref.read(armyListRepositoryProvider.future);
+    
+    final currentList = state.valueOrNull ?? [];
+    final newList = [...currentList, unit];
+    await repository.saveArmyList(newList);
+    state = AsyncData(newList);
   }
 
-  void removeUnit(String unitId) {
-    state = state.where((unit) => unit.id != unitId).toList();
+  Future<void> removeUnit(String unitId) async {
+    final repository = await ref.read(armyListRepositoryProvider.future);
+    
+    final currentList = state.valueOrNull ?? [];
+    final newList = currentList.where((unit) => unit.id != unitId).toList();
+    await repository.saveArmyList(newList);
+    state = AsyncData(newList);
   }
 
-  void updateUnitQuantity(String unitId, int quantity) {
-    state = state.map((unit) {
+  Future<void> updateUnitQuantity(String unitId, int quantity) async {
+    final repository = await ref.read(armyListRepositoryProvider.future);
+    
+    final currentList = state.valueOrNull ?? [];
+    final newList = currentList.map((unit) {
       if (unit.id == unitId) {
         return Unit(
           id: unit.id,
@@ -31,17 +47,19 @@ class ArmyList extends _$ArmyList {
       }
       return unit;
     }).toList();
+    await repository.saveArmyList(newList);
+    state = AsyncData(newList);
   }
 
   List<Unit> getFilteredUnits(String? factionId) {
-    if (factionId == null) return state;
-    return state
-        .where((unit) => unit.datasheet.factionId == factionId)
-        .toList();
+    final currentList = state.valueOrNull ?? [];
+    if (factionId == null) return currentList;
+    return currentList.where((unit) => unit.datasheet.factionId == factionId).toList();
   }
 
   int getTotalPoints() {
-    return state.fold<int>(
+    final currentList = state.valueOrNull ?? [];
+    return currentList.fold<int>(
       0,
       (sum, unit) => sum + ((unit.points) * (unit.quantity)),
     );

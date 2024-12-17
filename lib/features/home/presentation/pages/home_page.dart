@@ -133,43 +133,61 @@ class HomePage extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: filteredArmy.isEmpty
-                ? const Center(
+            child: army.when(
+              data: (units) {
+                if (filteredArmy.isEmpty) {
+                  return const Center(
                     child: Text('Add units to your army using the + button'),
-                  )
-                : ListView.builder(
-                    itemCount: filteredArmy.length,
-                    itemBuilder: (context, index) {
-                      final unit = filteredArmy[index];
-                      return ListTile(
-                        title: Text(unit.datasheet.name),
-                        subtitle: Text(
-                            '${unit.quantity}x - ${unit.points} points${unit.notes != null ? ' - ${unit.notes}' : ''}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Total: ${unit.points * unit.quantity} points',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _showEditQuantityDialog(context, ref, unit),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                ref
-                                    .read(armyListProvider.notifier)
-                                    .removeUnit(unit.id);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                  );
+                }
+                return ListView.builder(
+                  itemCount: filteredArmy.length,
+                  itemBuilder: (context, index) {
+                    final unit = filteredArmy[index];
+                    return ListTile(
+                      title: Text(unit.datasheet.name),
+                      subtitle: Text(
+                          '${unit.quantity}x - ${unit.points} points${unit.notes != null ? ' - ${unit.notes}' : ''}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Total: ${unit.points * unit.quantity} points',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _showEditQuantityDialog(context, ref, unit),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              ref
+                                  .read(armyListProvider.notifier)
+                                  .removeUnit(unit.id);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, stackTrace) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text('Error loading army: $error'),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
