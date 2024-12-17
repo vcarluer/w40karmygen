@@ -1,0 +1,8 @@
+id|name|factionId|sourceId|legend|role|loadout|transport|virtual|leaderHead|leaderFooter|damagedW|damagedDescription|link
+TACTICAL_SQUAD|Tactical Squad|SPACE_MARINES|CODEX|Core|Battleline|Bolt pistol and boltgun|null|false|null|null|null|null|https://wahapedia.ru/wh40k10ed/factions/space-marines/Tactical-Squad
+CHAOS_MARINES|Chaos Space Marines|CHAOS_SPACE_MARINES|CODEX|Core|Battleline|Bolt pistol and boltgun|null|false|null|null|null|null|https://wahapedia.ru/wh40k10ed/factions/chaos-space-marines/Chaos-Space-Marines
+GUARDIAN_DEFENDERS|Guardian Defenders|AELDARI|CODEX|Core|Battleline|Shuriken catapult|null|false|null|null|null|null|https://wahapedia.ru/wh40k10ed/factions/aeldari/Guardian-Defenders
+NECRON_WARRIORS|Necron Warriors|NECRONS|CODEX|Core|Battleline|Gauss flayer|null|false|null|null|null|null|https://wahapedia.ru/wh40k10ed/factions/necrons/Necron-Warriors
+BOYZ|Boyz|ORKS|CODEX|Core|Battleline|Slugga and choppa|null|false|null|null|null|null|https://wahapedia.ru/wh40k10ed/factions/orks/Boyz
+TERMAGANTS|Termagants|TYRANIDS|CODEX|Core|Battleline|Fleshborer|null|false|null|null|null|null|https://wahapedia.ru/wh40k10ed/factions/tyranids/Termagants
+FIRE_WARRIORS|Fire Warriors|TAU_EMPIRE|CODEX|Core|Battleline|Pulse rifle|null|false|null|null|null|null|https://wahapedia.ru/wh40k10ed/factions/t-au-empire/Fire-Warriors

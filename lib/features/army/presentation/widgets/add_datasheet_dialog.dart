@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import '../../domain/models/datasheet.dart';
 import '../../domain/models/faction.dart';
 import '../providers/faction_provider.dart';
@@ -20,6 +20,7 @@ class _AddDatasheetDialogState extends ConsumerState<AddDatasheetDialog> {
   Faction? _selectedFaction;
   late TextEditingController _searchController;
   late FocusNode _searchFocusNode;
+  String? _error;
 
   @override
   void initState() {
@@ -37,40 +38,71 @@ class _AddDatasheetDialogState extends ConsumerState<AddDatasheetDialog> {
   }
 
   Future<void> _loadDatasheets() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
-      final response = await http.get(Uri.parse('https://wahapedia.ru/wh40k10ed/Datasheets.csv'));
-      if (response.statusCode == 200) {
-        final lines = response.body.split('\n');
-        // Skip header
-        lines.removeAt(0);
-        
-        setState(() {
-          _datasheets = lines.where((line) => line.trim().isNotEmpty).map((line) {
-            final parts = line.split('|');
-            return Datasheet(
-              id: parts[0],
-              name: parts[1],
-              factionId: parts[2],
-              sourceId: parts[3],
-              legend: parts[4],
-              role: parts[5],
-              loadout: parts[6],
-              transport: parts[7].isEmpty ? null : parts[7],
-              virtual: parts[8] == 'true',
-              leaderHead: parts[9].isEmpty ? null : parts[9],
-              leaderFooter: parts[10].isEmpty ? null : parts[10],
-              damagedW: parts[11].isEmpty ? null : parts[11],
-              damagedDescription: parts[12].isEmpty ? null : parts[12],
-              link: parts[13],
-            );
-          }).toList();
-          _filteredDatasheets = _datasheets;
-          _isLoading = false;
-        });
+      debugPrint('Loading datasheets from assets...');
+      final String csvData = await rootBundle.loadString('assets/data/datasheets.csv');
+      debugPrint('CSV data loaded, length: ${csvData.length}');
+      
+      final lines = csvData.split('\n');
+      debugPrint('Number of lines: ${lines.length}');
+      
+      if (lines.isEmpty) {
+        throw Exception('CSV file is empty');
       }
+
+      // Print header for debugging
+      debugPrint('Header: ${lines[0]}');
+      
+      // Skip header
+      lines.removeAt(0);
+      
+      final parsedDatasheets = lines.where((line) => line.trim().isNotEmpty).map((line) {
+        try {
+          final parts = line.split('|');
+          if (parts.length < 14) {
+            debugPrint('Invalid line format: $line');
+            throw Exception('Invalid line format');
+          }
+          
+          return Datasheet(
+            id: parts[0],
+            name: parts[1],
+            factionId: parts[2],
+            sourceId: parts[3],
+            legend: parts[4],
+            role: parts[5],
+            loadout: parts[6],
+            transport: parts[7] == 'null' ? null : parts[7],
+            virtual: parts[8] == 'true',
+            leaderHead: parts[9] == 'null' ? null : parts[9],
+            leaderFooter: parts[10] == 'null' ? null : parts[10],
+            damagedW: parts[11] == 'null' ? null : parts[11],
+            damagedDescription: parts[12] == 'null' ? null : parts[12],
+            link: parts[13],
+          );
+        } catch (e) {
+          debugPrint('Error parsing line: $e');
+          return null;
+        }
+      }).whereType<Datasheet>().toList();
+
+      setState(() {
+        _datasheets = parsedDatasheets;
+        _filteredDatasheets = parsedDatasheets;
+        _isLoading = false;
+      });
+
+      debugPrint('Loaded ${_datasheets.length} datasheets');
     } catch (e) {
+      debugPrint('Error loading datasheets: $e');
       setState(() {
         _isLoading = false;
+        _error = 'Error loading datasheets: $e';
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -166,22 +198,32 @@ class _AddDatasheetDialogState extends ConsumerState<AddDatasheetDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : ListView.builder(
-                          itemCount: _filteredDatasheets.length,
-                          itemBuilder: (context, index) {
-                            final datasheet = _filteredDatasheets[index];
-                            return Card(
-                              child: ListTile(
-                                title: Text(datasheet.name),
-                                subtitle: Text('${datasheet.role} - ${datasheet.legend}'),
-                                onTap: () => Navigator.of(context).pop(datasheet),
-                              ),
-                            );
-                          },
-                        ),
+                      : _datasheets.isEmpty
+                          ? const Center(child: Text('No datasheets available'))
+                          : ListView.builder(
+                              itemCount: _filteredDatasheets.length,
+                              itemBuilder: (context, index) {
+                                final datasheet = _filteredDatasheets[index];
+                                return Card(
+                                  child: ListTile(
+                                    title: Text(datasheet.name),
+                                    subtitle: Text('${datasheet.role} - ${datasheet.legend}'),
+                                    onTap: () => Navigator.of(context).pop(datasheet),
+                                  ),
+                                );
+                              },
+                            ),
                 ),
               ],
             ),
