@@ -40,7 +40,18 @@ class OpenRouterService {
   }
 
   Future<String> recognizeUnit(Uint8List imageBytes) async {
-    final base64Image = base64Encode(imageBytes);
+    // First, upload the image to a temporary storage service
+    final uploadResponse = await http.post(
+      Uri.parse('https://tmpfiles.org/api/v1/upload'),
+      body: imageBytes,
+    );
+
+    if (uploadResponse.statusCode != 200) {
+      throw Exception('Failed to upload image: ${uploadResponse.body}');
+    }
+
+    final uploadData = jsonDecode(uploadResponse.body);
+    final imageUrl = uploadData['data']['url'];
     
     final response = await http.post(
       Uri.parse('$_baseUrl/chat/completions'),
@@ -58,19 +69,16 @@ class OpenRouterService {
           },
           {
             'role': 'user',
-            'content': {
-              'type': 'text',
-              'parts': [
-                {
-                  'type': 'image/jpeg',
-                  'data': base64Image
-                },
-                {
-                  'type': 'text',
-                  'text': 'What is the exact name of this Warhammer 40,000 unit? Please provide only the exact unit name as it appears in the game data, without any additional text or explanation.'
-                }
-              ]
-            }
+            'content': [
+              {
+                'type': 'image_url',
+                'image_url': imageUrl
+              },
+              {
+                'type': 'text',
+                'text': 'What is the exact name of this Warhammer 40,000 unit? Please provide only the exact unit name as it appears in the game data, without any additional text or explanation.'
+              }
+            ]
           }
         ],
       }),
