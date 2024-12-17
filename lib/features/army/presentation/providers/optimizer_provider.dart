@@ -30,7 +30,12 @@ class OptimizationResult extends _$OptimizationResult {
     int pointsLimit, {
     Faction? faction,
     String? additionalInstructions,
+    required Function() onComplete,
   }) async {
+    if (state.isLoading) {
+      return; // Prevent multiple optimizations running at once
+    }
+
     state = const AsyncValue.loading();
     
     try {
@@ -53,7 +58,7 @@ class OptimizationResult extends _$OptimizationResult {
       final strategy = parts.length > 1 ? parts[1].trim() : 'No strategy provided';
 
       // Store the optimized army
-      ref.read(optimizedArmiesProvider.notifier).addOptimizedArmy(
+      await ref.read(optimizedArmiesProvider.notifier).addOptimizedArmy(
         name: name,
         description: additionalInstructions ?? 'Standard optimization',
         pointsLimit: pointsLimit,
@@ -63,6 +68,7 @@ class OptimizationResult extends _$OptimizationResult {
       );
       
       state = AsyncValue.data(result);
+      onComplete(); // Call onComplete callback when optimization is done
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }

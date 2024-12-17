@@ -52,7 +52,8 @@ Future<void> showOptimizationDialog(BuildContext context, WidgetRef ref, int poi
   
   await showDialog(
     context: context,
-    builder: (context) => OptimizationParametersDialog(
+    barrierDismissible: false, // Prevent closing by tapping outside while optimizing
+    builder: (dialogContext) => OptimizationParametersDialog(
       factions: factions,
       pointsLimit: pointsLimit,
       onOptimize: (faction, instructions) {
@@ -60,8 +61,25 @@ Future<void> showOptimizationDialog(BuildContext context, WidgetRef ref, int poi
           pointsLimit,
           faction: faction,
           additionalInstructions: instructions,
+          onComplete: () {
+            // Close the parameters dialog when optimization completes
+            Navigator.of(dialogContext).pop();
+          },
         );
       },
     ),
   );
+
+  // After parameters dialog closes, check if we have a result to show
+  if (!context.mounted) return;
+  
+  final optimizationState = ref.read(optimizationResultProvider);
+  if (optimizationState.hasValue && optimizationState.value != null) {
+    await showDialog(
+      context: context,
+      builder: (context) => OptimizationResultDialog(
+        result: optimizationState.value!,
+      ),
+    );
+  }
 }

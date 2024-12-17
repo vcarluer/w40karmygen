@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/faction.dart';
+import '../providers/optimizer_provider.dart';
 
-class OptimizationParametersDialog extends StatefulWidget {
+class OptimizationParametersDialog extends ConsumerStatefulWidget {
   final List<Faction> factions;
   final int pointsLimit;
   final Function(Faction? faction, String? instructions) onOptimize;
@@ -14,10 +16,10 @@ class OptimizationParametersDialog extends StatefulWidget {
   });
 
   @override
-  State<OptimizationParametersDialog> createState() => _OptimizationParametersDialogState();
+  ConsumerState<OptimizationParametersDialog> createState() => _OptimizationParametersDialogState();
 }
 
-class _OptimizationParametersDialogState extends State<OptimizationParametersDialog> {
+class _OptimizationParametersDialogState extends ConsumerState<OptimizationParametersDialog> {
   Faction? selectedFaction;
   final TextEditingController _instructionsController = TextEditingController();
 
@@ -29,12 +31,23 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
 
   @override
   Widget build(BuildContext context) {
+    final optimizationState = ref.watch(optimizationResultProvider);
+    final isLoading = optimizationState.isLoading;
+
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.settings),
-          SizedBox(width: 8),
-          Text('Army Optimization Parameters'),
+          const Icon(Icons.settings),
+          const SizedBox(width: 8),
+          const Text('Army Optimization Parameters'),
+          if (isLoading) ...[
+            const SizedBox(width: 8),
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ],
         ],
       ),
       content: SingleChildScrollView(
@@ -42,6 +55,14 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (isLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: Text(
+                  'Optimization in progress...',
+                  style: TextStyle(color: Colors.blue),
+                ),
+              ),
             const Text('Faction (optional):'),
             const SizedBox(height: 8),
             DropdownButtonFormField<Faction?>(
@@ -58,7 +79,7 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
                   );
                 }),
               ],
-              onChanged: (Faction? value) {
+              onChanged: isLoading ? null : (Faction? value) {
                 setState(() {
                   selectedFaction = value;
                 });
@@ -74,6 +95,7 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
             TextField(
               controller: _instructionsController,
               maxLines: 3,
+              enabled: !isLoading,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter any specific requirements or preferences...',
@@ -90,18 +112,23 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () {
-            widget.onOptimize(
-              selectedFaction,
-              _instructionsController.text.isEmpty ? null : _instructionsController.text,
-            );
-            Navigator.of(context).pop();
-          },
-          child: const Text('Optimize'),
+          onPressed: isLoading
+              ? null
+              : () {
+                  widget.onOptimize(
+                    selectedFaction,
+                    _instructionsController.text.isEmpty
+                        ? null
+                        : _instructionsController.text,
+                  );
+                  // Don't pop the dialog when optimization starts
+                  // Let it close when optimization completes
+                },
+          child: Text(isLoading ? 'Optimizing...' : 'Optimize'),
         ),
       ],
     );
