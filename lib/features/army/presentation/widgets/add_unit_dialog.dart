@@ -34,6 +34,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   int _quantity = 1;
   String _notes = '';
   bool _isRecognizing = false;
+  String? _recognizedFigurineName;
 
   @override
   void initState() {
@@ -67,21 +68,23 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
       if (image != null) {
         setState(() {
           _isRecognizing = true;
+          _recognizedFigurineName = null;
         });
 
         final bytes = await image.readAsBytes();
         final openRouterService = ref.read(openRouterServiceProvider);
-        final unitName = await openRouterService.recognizeUnit(bytes);
+        final result = await openRouterService.recognizeUnit(bytes);
 
-        // Find the datasheet with the matching name
+        // Find the datasheet with the matching unit name
         final datasheets = ref.read(filteredDatasheetListProvider);
         final matchingDatasheet = datasheets.firstWhere(
-          (datasheet) => datasheet.name.toLowerCase() == unitName.toLowerCase(),
-          orElse: () => throw Exception('Unit not found: $unitName'),
+          (datasheet) => datasheet.name.toLowerCase() == result.unitName.toLowerCase(),
+          orElse: () => throw Exception('Unit not found: ${result.unitName}'),
         );
 
         setState(() {
           _selectedDatasheet = matchingDatasheet;
+          _recognizedFigurineName = result.figurineName;
           _isRecognizing = false;
         });
 
@@ -160,6 +163,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                       _selectedDatasheet = null;
                       _selectedCost = null;
                       _pointsController.clear();
+                      _recognizedFigurineName = null;
                     });
                   },
                 ),
@@ -169,18 +173,29 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
               const SizedBox(height: 16),
               // Photo import button
               Center(
-                child: ElevatedButton.icon(
-                  onPressed: _isRecognizing ? null : _pickAndRecognizeImage,
-                  icon: _isRecognizing
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.photo_camera),
-                  label: Text(_isRecognizing ? 'Recognizing...' : 'Import Photo'),
+                child: Column(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _isRecognizing ? null : _pickAndRecognizeImage,
+                      icon: _isRecognizing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.photo_camera),
+                      label: Text(_isRecognizing ? 'Recognizing...' : 'Import Photo'),
+                    ),
+                    if (_recognizedFigurineName != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Recognized Figurine: $_recognizedFigurineName',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -206,6 +221,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                               onTap: () {
                                 setState(() {
                                   _selectedDatasheet = datasheet;
+                                  _recognizedFigurineName = null;
                                 });
                                 // Auto-select first cost option when datasheet is selected
                                 if (datasheetCosts.value != null) {

@@ -2,6 +2,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
+class RecognitionResult {
+  final String figurineName;
+  final String unitName;
+
+  RecognitionResult({required this.figurineName, required this.unitName});
+}
+
 class OpenRouterService {
   static const String _baseUrl = 'https://openrouter.ai/api/v1';
   final String apiKey;
@@ -39,7 +46,7 @@ class OpenRouterService {
     }
   }
 
-  Future<String> recognizeUnit(Uint8List imageBytes) async {
+  Future<RecognitionResult> recognizeUnit(Uint8List imageBytes) async {
     final base64Image = base64Encode(imageBytes);
     final dataUrl = 'data:image/jpeg;base64,$base64Image';
     
@@ -55,7 +62,7 @@ class OpenRouterService {
         'messages': [
           {
             'role': 'system',
-            'content': 'You are a Warhammer 40,000 miniature recognition expert. Your goal is to identify the exact unit name from the image provided.',
+            'content': 'You are a Warhammer 40,000 miniature recognition expert. Your goal is to identify both the specific figurine and its unit type from the image provided.',
           },
           {
             'role': 'user',
@@ -68,7 +75,7 @@ class OpenRouterService {
               },
               {
                 'type': 'text',
-                'text': 'What is the exact name of this Warhammer 40,000 unit? Please provide only the exact unit name as it appears in the game data, without any additional text or explanation.'
+                'text': 'Please provide two pieces of information about this Warhammer 40,000 miniature:\n1. The specific name of this figurine\n2. The unit type/name as it appears in the game data\nFormat your response exactly like this:\nFigurine: [figurine name]\nUnit: [unit name]'
               }
             ]
           }
@@ -78,7 +85,25 @@ class OpenRouterService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['choices'][0]['message']['content'];
+      final content = data['choices'][0]['message']['content'] as String;
+      
+      // Parse the response
+      final lines = content.split('\n');
+      String figurineName = '';
+      String unitName = '';
+      
+      for (final line in lines) {
+        if (line.startsWith('Figurine:')) {
+          figurineName = line.substring('Figurine:'.length).trim();
+        } else if (line.startsWith('Unit:')) {
+          unitName = line.substring('Unit:'.length).trim();
+        }
+      }
+      
+      return RecognitionResult(
+        figurineName: figurineName,
+        unitName: unitName,
+      );
     } else {
       throw Exception('Failed to recognize unit: ${response.body}');
     }
