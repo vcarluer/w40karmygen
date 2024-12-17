@@ -16,7 +16,7 @@ class OpenRouterService {
         'HTTP-Referer': 'https://github.com/vcarluer/w40k', // Required by OpenRouter
       },
       body: jsonEncode({
-        'model': 'anthropic/claude-3-haiku',
+        'model': 'mistralai/mistral-7b-instruct',
         'messages': [
           {
             'role': 'system',
