@@ -1,42 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/datasheet.dart';
+import '../../domain/models/faction.dart';
 import '../../domain/models/unit.dart';
+import '../providers/faction_provider.dart';
+import '../providers/datasheet_provider.dart';
 
-class AddUnitDialog extends StatefulWidget {
-  final Datasheet datasheet;
-
-  const AddUnitDialog({
+class UnitSelectionDialog extends ConsumerStatefulWidget {
+  const UnitSelectionDialog({
     super.key,
-    required this.datasheet,
   });
 
   @override
-  State<AddUnitDialog> createState() => _AddUnitDialogState();
+  ConsumerState<UnitSelectionDialog> createState() => _UnitSelectionDialogState();
 }
 
-class _AddUnitDialogState extends State<AddUnitDialog> {
+class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   final _formKey = GlobalKey<FormState>();
+  Datasheet? _selectedDatasheet;
   int _quantity = 1;
   int _points = 0;
   String _notes = '';
 
   @override
   Widget build(BuildContext context) {
+    final factions = ref.watch(factionListProvider);
+    final selectedFaction = ref.watch(selectedFactionProvider);
+    final datasheets = ref.watch(filteredDatasheetListProvider);
+
     return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 800),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Add ${widget.datasheet.name}',
+                    'Select Unit',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   IconButton(
@@ -46,72 +51,158 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
                 ],
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Quantity',
-                  border: OutlineInputBorder(),
+              // Faction dropdown
+              factions.when(
+                data: (factionList) => DropdownButtonFormField<Faction?>(
+                  decoration: const InputDecoration(
+                    labelText: 'Faction',
+                    border: OutlineInputBorder(),
+                  ),
+                  value: selectedFaction,
+                  items: [
+                    const DropdownMenuItem<Faction?>(
+                      value: null,
+                      child: Text('All Factions'),
+                    ),
+                    ...factionList.map((faction) => DropdownMenuItem<Faction?>(
+                          value: faction,
+                          child: Text(faction.name),
+                        )),
+                  ],
+                  onChanged: (faction) {
+                    // Update both the dialog and main page faction
+                    ref.read(selectedFactionProvider.notifier).select(faction);
+                    setState(() {
+                      _selectedDatasheet = null;
+                    });
+                  },
                 ),
-                initialValue: _quantity.toString(),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a quantity';
-                  }
-                  final quantity = int.tryParse(value);
-                  if (quantity == null || quantity < 1) {
-                    return 'Quantity must be at least 1';
-                  }
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {
-                    _quantity = int.tryParse(value) ?? 1;
-                  });
-                },
+                loading: () => const CircularProgressIndicator(),
+                error: (error, stack) => Text('Error loading factions: $error'),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Points',
-                  border: OutlineInputBorder(),
+              // Datasheets list
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Available Units',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: Card(
+                        child: ListView.builder(
+                          itemCount: datasheets.length,
+                          itemBuilder: (context, index) {
+                            final datasheet = datasheets[index];
+                            return ListTile(
+                              title: Text(datasheet.name),
+                              selected: _selectedDatasheet?.id == datasheet.id,
+                              onTap: () {
+                                setState(() {
+                                  _selectedDatasheet = datasheet;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                initialValue: _points.toString(),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter points';
-                  }
-                  final points = int.tryParse(value);
-                  if (points == null || points < 0) {
-                    return 'Points must be 0 or greater';
-                  }
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {
-                    _points = int.tryParse(value) ?? 0;
-                  });
-                },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  border: OutlineInputBorder(),
+              if (_selectedDatasheet != null) ...[
+                const SizedBox(height: 16),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Unit Details',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Quantity',
+                                border: OutlineInputBorder(),
+                              ),
+                              initialValue: _quantity.toString(),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a quantity';
+                                }
+                                final quantity = int.tryParse(value);
+                                if (quantity == null || quantity < 1) {
+                                  return 'Quantity must be at least 1';
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  _quantity = int.tryParse(value) ?? 1;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Points',
+                                border: OutlineInputBorder(),
+                              ),
+                              initialValue: _points.toString(),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter points';
+                                }
+                                final points = int.tryParse(value);
+                                if (points == null || points < 0) {
+                                  return 'Points must be 0 or greater';
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  _points = int.tryParse(value) ?? 0;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Notes (optional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                        onChanged: (value) {
+                          setState(() {
+                            _notes = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                maxLines: 3,
-                onChanged: (value) {
-                  setState(() {
-                    _notes = value;
-                  });
-                },
-              ),
+              ],
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -122,18 +213,20 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        final unit = Unit(
-                          id: DateTime.now().toIso8601String(),
-                          datasheet: widget.datasheet,
-                          quantity: _quantity,
-                          points: _points,
-                          notes: _notes.isEmpty ? null : _notes,
-                        );
-                        Navigator.of(context).pop(unit);
-                      }
-                    },
+                    onPressed: _selectedDatasheet == null
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              final unit = Unit(
+                                id: DateTime.now().toIso8601String(),
+                                datasheet: _selectedDatasheet!,
+                                quantity: _quantity,
+                                points: _points,
+                                notes: _notes.isEmpty ? null : _notes,
+                              );
+                              Navigator.of(context).pop(unit);
+                            }
+                          },
                     child: const Text('Add Unit'),
                   ),
                 ],
