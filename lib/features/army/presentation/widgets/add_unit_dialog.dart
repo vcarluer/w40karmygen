@@ -11,9 +11,10 @@ import '../providers/dialog_faction_provider.dart';
 import '../providers/datasheet_provider.dart';
 import '../providers/datasheet_cost_provider.dart';
 import '../../data/services/openrouter_service.dart';
+import 'package:w40k_army_opti/core/config/env.local.dart';
 
 final openRouterServiceProvider = Provider((ref) => OpenRouterService(
-      apiKey: const String.fromEnvironment('OPENROUTER_API_KEY'),
+      apiKey: EnvLocal.openRouterApiKey,
     ));
 
 class UnitSelectionDialog extends ConsumerStatefulWidget {
