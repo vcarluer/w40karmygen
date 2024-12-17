@@ -91,6 +91,12 @@ class HomePage extends ConsumerWidget {
               if (points != null && points > 0) {
                 Navigator.of(context).pop();
                 showOptimizationDialog(context, ref, points);
+                // Navigate to optimized armies page after optimization
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const OptimizedArmiesPage(),
+                  ),
+                );
               }
             },
             child: const Text('Next'),
@@ -107,7 +113,6 @@ class HomePage extends ConsumerWidget {
     final collection = ref.watch(miniatureCollectionProvider);
     final filteredCollection = ref.read(miniatureCollectionProvider.notifier).getFilteredUnits(selectedFaction?.id);
     final totalPoints = ref.read(miniatureCollectionProvider.notifier).getTotalPoints();
-    final optimizationResult = ref.watch(optimizationResultProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -199,91 +204,6 @@ class HomePage extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
-            ),
-          ),
-          optimizationResult.when(
-            data: (result) => result != null
-                ? Container(
-                    margin: const EdgeInsets.all(8),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.auto_awesome),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Optimized Army List',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Icons.open_in_new),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => OptimizationResultDialog(
-                                    result: result,
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                ref.invalidate(optimizationResultProvider);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          result,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-            error: (error, _) => Container(
-              margin: const EdgeInsets.all(8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Error optimizing list: $error',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      ref.invalidate(optimizationResultProvider);
-                    },
-                  ),
-                ],
-              ),
             ),
           ),
           Expanded(

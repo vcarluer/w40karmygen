@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/optimized_army_provider.dart';
+import '../providers/optimizer_provider.dart';
 import '../../domain/models/optimized_army.dart';
 
 class OptimizedArmiesPage extends ConsumerWidget {
@@ -9,22 +10,101 @@ class OptimizedArmiesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final armies = ref.watch(optimizedArmiesProvider);
+    final optimizationResult = ref.watch(optimizationResultProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Optimized Armies'),
       ),
-      body: armies.isEmpty
-          ? const Center(
-              child: Text('No optimized armies yet'),
-            )
-          : ListView.builder(
-              itemCount: armies.length,
-              itemBuilder: (context, index) {
-                final army = armies[index];
-                return _ArmyCard(army: army);
-              },
+      body: Column(
+        children: [
+          // Show optimization result while generating
+          optimizationResult.when(
+            data: (result) => result != null
+                ? Container(
+                    margin: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.auto_awesome),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Generating Army List...',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                ref.invalidate(optimizationResultProvider);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(result),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
             ),
+            error: (error, _) => Container(
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Error optimizing list: $error',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      ref.invalidate(optimizationResultProvider);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Show saved armies
+          Expanded(
+            child: armies.isEmpty
+                ? const Center(
+                    child: Text('No optimized armies yet'),
+                  )
+                : ListView.builder(
+                    itemCount: armies.length,
+                    itemBuilder: (context, index) {
+                      final army = armies[index];
+                      return _ArmyCard(army: army);
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
