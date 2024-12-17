@@ -18,11 +18,22 @@ class _AddDatasheetDialogState extends ConsumerState<AddDatasheetDialog> {
   bool _isLoading = true;
   String _searchQuery = '';
   Faction? _selectedFaction;
+  late TextEditingController _searchController;
+  late FocusNode _searchFocusNode;
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
+    _searchFocusNode = FocusNode();
     _loadDatasheets();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _loadDatasheets() async {
@@ -84,92 +95,96 @@ class _AddDatasheetDialogState extends ConsumerState<AddDatasheetDialog> {
     final factions = ref.watch(factionListProvider);
 
     return Dialog(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.9,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Add Datasheet',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+      child: Material(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Add Datasheet',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                factions.when(
+                  data: (factionList) => DropdownButtonFormField<Faction>(
+                    value: _selectedFaction,
+                    decoration: const InputDecoration(
+                      labelText: 'Filter by Faction',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      const DropdownMenuItem<Faction>(
+                        value: null,
+                        child: Text('All Factions'),
+                      ),
+                      ...factionList.map((faction) => DropdownMenuItem(
+                        value: faction,
+                        child: Text(faction.name),
+                      )),
+                    ],
+                    onChanged: (faction) {
+                      setState(() {
+                        _selectedFaction = faction;
+                        _filterDatasheets();
+                      });
+                    },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              factions.when(
-                data: (factionList) => DropdownButtonFormField<Faction>(
-                  value: _selectedFaction,
+                  error: (error, _) => Text('Error: $error'),
+                  loading: () => const CircularProgressIndicator(),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
                   decoration: const InputDecoration(
-                    labelText: 'Filter by Faction',
+                    labelText: 'Search',
+                    prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(),
                   ),
-                  items: [
-                    const DropdownMenuItem<Faction>(
-                      value: null,
-                      child: Text('All Factions'),
-                    ),
-                    ...factionList.map((faction) => DropdownMenuItem(
-                      value: faction,
-                      child: Text(faction.name),
-                    )),
-                  ],
-                  onChanged: (faction) {
+                  onChanged: (value) {
                     setState(() {
-                      _selectedFaction = faction;
+                      _searchQuery = value;
                       _filterDatasheets();
                     });
                   },
                 ),
-                error: (error, _) => Text('Error: $error'),
-                loading: () => const CircularProgressIndicator(),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Search',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          itemCount: _filteredDatasheets.length,
+                          itemBuilder: (context, index) {
+                            final datasheet = _filteredDatasheets[index];
+                            return Card(
+                              child: ListTile(
+                                title: Text(datasheet.name),
+                                subtitle: Text('${datasheet.role} - ${datasheet.legend}'),
+                                onTap: () => Navigator.of(context).pop(datasheet),
+                              ),
+                            );
+                          },
+                        ),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                    _filterDatasheets();
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: _filteredDatasheets.length,
-                        itemBuilder: (context, index) {
-                          final datasheet = _filteredDatasheets[index];
-                          return Card(
-                            child: ListTile(
-                              title: Text(datasheet.name),
-                              subtitle: Text('${datasheet.role} - ${datasheet.legend}'),
-                              onTap: () => Navigator.of(context).pop(datasheet),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
