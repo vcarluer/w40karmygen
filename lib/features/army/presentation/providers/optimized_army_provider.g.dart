@@ -6,7 +6,7 @@ part of 'optimized_army_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$optimizedArmiesHash() => r'21d29455f5976c04d4410d893092bcc1496b62ec';
+String _$optimizedArmiesHash() => r'de0082082ac5885c8dd55805325ec13aad9f93a5';
 
 /// See also [OptimizedArmies].
 @ProviderFor(OptimizedArmies)

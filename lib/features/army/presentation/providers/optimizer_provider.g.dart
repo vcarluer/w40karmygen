@@ -7,7 +7,7 @@ part of 'optimizer_provider.dart';
 // **************************************************************************
 
 String _$optimizationResultHash() =>
-    r'a9ea83654b8c6f00a80930d97d8314d249ece543';
+    r'6e5bc3b957137dbe587a560e05d33f44262167d3';
 
 /// See also [OptimizationResult].
 @ProviderFor(OptimizationResult)
