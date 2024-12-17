@@ -66,7 +66,7 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('W40K Miniature Collection'),
+        title: const Text('W40k Army Generator'),
         actions: [
           IconButton(
             icon: const Icon(Icons.list),
@@ -98,6 +98,13 @@ class HomePage extends ConsumerWidget {
             },
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showGenerateDialog(context, ref),
+        icon: const Icon(Icons.auto_awesome),
+        label: const Text('Generate Army'),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        tooltip: 'Generate a new army list',
       ),
       body: Column(
         children: [

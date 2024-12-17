@@ -65,6 +65,24 @@ class _GenerationParametersDialogState extends ConsumerState<GenerationParameter
                   style: TextStyle(color: Colors.blue),
                 ),
               ),
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'The army generation will prioritize units from your collection to create an optimized army.',
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             const Text('Points Limit:'),
             const SizedBox(height: 8),
             DropdownButtonFormField<int?>(

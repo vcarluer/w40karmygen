@@ -10,18 +10,18 @@ void main() async {
   
   runApp(
     const ProviderScope(
-      child: W40kCollectionApp(),
+      child: W40kArmyGeneratorApp(),
     ),
   );
 }
 
-class W40kCollectionApp extends StatelessWidget {
-  const W40kCollectionApp({super.key});
+class W40kArmyGeneratorApp extends StatelessWidget {
+  const W40kArmyGeneratorApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'W40K Collection Manager',
+      title: 'W40k Army Generator',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
