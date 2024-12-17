@@ -30,12 +30,14 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   final _formKey = GlobalKey<FormState>();
   final _pointsController = TextEditingController();
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
   Datasheet? _selectedDatasheet;
   DatasheetCost? _selectedCost;
   int _quantity = 1;
   String _notes = '';
   bool _isRecognizing = false;
   String? _recognizedFigurineName;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -51,6 +53,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   void dispose() {
     _pointsController.dispose();
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -78,6 +81,16 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
         );
       }
     }
+  }
+
+  List<Datasheet> _filterDatasheets(List<Datasheet> datasheets) {
+    if (_searchQuery.isEmpty) {
+      return datasheets;
+    }
+    final query = _searchQuery.toLowerCase();
+    return datasheets.where((datasheet) => 
+      datasheet.name.toLowerCase().contains(query)
+    ).toList();
   }
 
   Datasheet? _findMatchingDatasheet(String unitName, List<Datasheet> datasheets) {
@@ -175,6 +188,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
     final factions = ref.watch(factionListProvider);
     final selectedFaction = ref.watch(dialogSelectedFactionProvider);
     final datasheets = ref.watch(filteredDatasheetListProvider);
+    final filteredDatasheets = _filterDatasheets(datasheets);
     final datasheetCosts = ref.watch(datasheetCostNotifierProvider);
 
     return Dialog(
@@ -271,13 +285,28 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
+                    // Search field
+                    TextField(
+                      controller: _searchController,
+                      decoration: const InputDecoration(
+                        labelText: 'Search',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 8),
                     Expanded(
                       child: Card(
                         child: ListView.builder(
                           controller: _scrollController,
-                          itemCount: datasheets.length,
+                          itemCount: filteredDatasheets.length,
                           itemBuilder: (context, index) {
-                            final datasheet = datasheets[index];
+                            final datasheet = filteredDatasheets[index];
                             return ListTile(
                               title: Text(datasheet.name),
                               selected: _selectedDatasheet?.id == datasheet.id,
