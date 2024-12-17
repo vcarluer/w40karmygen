@@ -7,7 +7,7 @@ class OpenRouterService {
 
   OpenRouterService({required this.apiKey});
 
-  Future<String> generateOptimizedList(String prompt) async {
+  Future<String> generateArmyList(String prompt) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/chat/completions'),
       headers: {
@@ -20,7 +20,7 @@ class OpenRouterService {
         'messages': [
           {
             'role': 'system',
-            'content': 'You are a Warhammer 40,000 army list optimizer. Your goal is to create the most effective army list possible given the available units.',
+            'content': 'You are a Warhammer 40,000 army list generator. Your goal is to create effective army lists given the available units.',
           },
           {
             'role': 'user',
@@ -34,7 +34,7 @@ class OpenRouterService {
       final data = jsonDecode(response.body);
       return data['choices'][0]['message']['content'];
     } else {
-      throw Exception('Failed to generate optimized list: ${response.body}');
+      throw Exception('Failed to generate army list: ${response.body}');
     }
   }
 }
