@@ -18,6 +18,21 @@ class ArmyList extends _$ArmyList {
     state = state.where((unit) => unit.id != unitId).toList();
   }
 
+  void updateUnitQuantity(String unitId, int quantity) {
+    state = state.map((unit) {
+      if (unit.id == unitId) {
+        return Unit(
+          id: unit.id,
+          datasheet: unit.datasheet,
+          quantity: quantity,
+          points: unit.points,
+          notes: unit.notes,
+        );
+      }
+      return unit;
+    }).toList();
+  }
+
   List<Unit> getFilteredUnits(String? factionId) {
     if (factionId == null) return state;
     return state

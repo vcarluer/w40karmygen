@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../army/domain/models/faction.dart';
 import '../../../army/domain/models/unit.dart';
@@ -9,6 +10,44 @@ import '../../../army/presentation/widgets/add_unit_dialog.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
+
+  Future<void> _showEditQuantityDialog(BuildContext context, WidgetRef ref, Unit unit) async {
+    final controller = TextEditingController(text: unit.quantity.toString());
+    
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit ${unit.datasheet.name} Quantity'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+          ],
+          decoration: const InputDecoration(
+            labelText: 'Quantity',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final quantity = int.tryParse(controller.text);
+              if (quantity != null && quantity > 0) {
+                ref.read(armyListProvider.notifier).updateUnitQuantity(unit.id, quantity);
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -114,6 +153,10 @@ class HomePage extends ConsumerWidget {
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _showEditQuantityDialog(context, ref, unit),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () {
