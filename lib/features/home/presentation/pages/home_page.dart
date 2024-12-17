@@ -5,11 +5,11 @@ import '../../../army/domain/models/faction.dart';
 import '../../../army/domain/models/unit.dart';
 import '../../../army/presentation/providers/faction_provider.dart';
 import '../../../army/presentation/providers/collection_provider.dart';
-import '../../../army/presentation/providers/optimizer_provider.dart';
+import '../../../army/presentation/providers/generator_provider.dart';
 import '../../../army/presentation/widgets/add_datasheet_dialog.dart';
 import '../../../army/presentation/widgets/add_unit_dialog.dart';
-import '../../../army/presentation/widgets/optimization_result_dialog.dart';
-import '../../../army/presentation/pages/optimized_armies_page.dart';
+import '../../../army/presentation/widgets/generation_result_dialog.dart';
+import '../../../army/presentation/pages/generated_armies_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -52,58 +52,16 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Future<void> _showOptimizeDialog(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController(text: '2000');
-    
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Optimize Army List'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              decoration: const InputDecoration(
-                labelText: 'Points Limit',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'This will generate an army list using heretical magic. The Inquisition has been notified.',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
+  Future<void> _showGenerateDialog(BuildContext context, WidgetRef ref) async {
+    await showGenerationDialog(context, ref);
+    if (context.mounted) {
+      // Navigate to generated armies page after generation
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const GeneratedArmiesPage(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final points = int.tryParse(controller.text);
-              if (points != null && points > 0) {
-                Navigator.of(context).pop();
-                showOptimizationDialog(context, ref, points);
-                // Navigate to optimized armies page after optimization
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const OptimizedArmiesPage(),
-                  ),
-                );
-              }
-            },
-            child: const Text('Next'),
-          ),
-        ],
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -120,19 +78,19 @@ class HomePage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.list),
-            tooltip: 'Optimized Armies',
+            tooltip: 'Generated Armies',
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const OptimizedArmiesPage(),
+                  builder: (context) => const GeneratedArmiesPage(),
                 ),
               );
             },
           ),
           IconButton(
             icon: const Icon(Icons.auto_awesome),
-            tooltip: 'Optimize Army List',
-            onPressed: () => _showOptimizeDialog(context, ref),
+            tooltip: 'Generate Army List',
+            onPressed: () => _showGenerateDialog(context, ref),
           ),
           IconButton(
             icon: const Icon(Icons.add),
