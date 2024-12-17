@@ -71,7 +71,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Select Unit',
+                    'Add to Collection',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   IconButton(
@@ -119,7 +119,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Available Units',
+                      'Available Miniatures',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -160,7 +160,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Unit Details',
+                        'Miniature Details',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -207,7 +207,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                           Expanded(
                             child: TextFormField(
                               decoration: const InputDecoration(
-                                labelText: 'Quantity',
+                                labelText: 'Quantity in Collection',
                                 border: OutlineInputBorder(),
                               ),
                               initialValue: _quantity.toString(),
@@ -236,7 +236,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                           Expanded(
                             child: TextFormField(
                               decoration: const InputDecoration(
-                                labelText: 'Points',
+                                labelText: 'Points Value',
                                 border: OutlineInputBorder(),
                               ),
                               controller: _pointsController,
@@ -290,7 +290,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                               Navigator.of(context).pop(unit);
                             }
                           },
-                    child: const Text('Add Unit'),
+                    child: const Text('Add to Collection'),
                   ),
                 ],
               ),

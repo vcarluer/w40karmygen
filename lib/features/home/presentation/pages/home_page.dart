@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../army/domain/models/faction.dart';
 import '../../../army/domain/models/unit.dart';
 import '../../../army/presentation/providers/faction_provider.dart';
-import '../../../army/presentation/providers/army_provider.dart';
+import '../../../army/presentation/providers/collection_provider.dart';
 import '../../../army/presentation/widgets/add_datasheet_dialog.dart';
 import '../../../army/presentation/widgets/add_unit_dialog.dart';
 
@@ -38,7 +38,7 @@ class HomePage extends ConsumerWidget {
             onPressed: () {
               final quantity = int.tryParse(controller.text);
               if (quantity != null && quantity > 0) {
-                ref.read(armyListProvider.notifier).updateUnitQuantity(unit.id, quantity);
+                ref.read(miniatureCollectionProvider.notifier).updateUnitQuantity(unit.id, quantity);
                 Navigator.of(context).pop();
               }
             },
@@ -53,13 +53,13 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final factions = ref.watch(factionListProvider);
     final selectedFaction = ref.watch(selectedFactionProvider);
-    final army = ref.watch(armyListProvider);
-    final filteredArmy = ref.read(armyListProvider.notifier).getFilteredUnits(selectedFaction?.id);
-    final totalPoints = ref.read(armyListProvider.notifier).getTotalPoints();
+    final collection = ref.watch(miniatureCollectionProvider);
+    final filteredCollection = ref.read(miniatureCollectionProvider.notifier).getFilteredUnits(selectedFaction?.id);
+    final totalPoints = ref.read(miniatureCollectionProvider.notifier).getTotalPoints();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('W40K Army Builder'),
+        title: const Text('W40K Miniature Collection'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -69,7 +69,7 @@ class HomePage extends ConsumerWidget {
                 builder: (context) => UnitSelectionDialog(),
               );
               if (unit != null) {
-                ref.read(armyListProvider.notifier).addUnit(unit);
+                ref.read(miniatureCollectionProvider.notifier).addUnit(unit);
               }
             },
           ),
@@ -133,17 +133,17 @@ class HomePage extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: army.when(
+            child: collection.when(
               data: (units) {
-                if (filteredArmy.isEmpty) {
+                if (filteredCollection.isEmpty) {
                   return const Center(
-                    child: Text('Add units to your army using the + button'),
+                    child: Text('Add miniatures to your collection using the + button'),
                   );
                 }
                 return ListView.builder(
-                  itemCount: filteredArmy.length,
+                  itemCount: filteredCollection.length,
                   itemBuilder: (context, index) {
-                    final unit = filteredArmy[index];
+                    final unit = filteredCollection[index];
                     return ListTile(
                       title: Text(unit.datasheet.name),
                       subtitle: Text(
@@ -164,7 +164,7 @@ class HomePage extends ConsumerWidget {
                             icon: const Icon(Icons.delete),
                             onPressed: () {
                               ref
-                                  .read(armyListProvider.notifier)
+                                  .read(miniatureCollectionProvider.notifier)
                                   .removeUnit(unit.id);
                             },
                           ),
@@ -183,7 +183,7 @@ class HomePage extends ConsumerWidget {
                   children: [
                     const Icon(Icons.error_outline, size: 48, color: Colors.red),
                     const SizedBox(height: 16),
-                    Text('Error loading army: $error'),
+                    Text('Error loading collection: $error'),
                   ],
                 ),
               ),

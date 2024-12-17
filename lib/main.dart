@@ -10,18 +10,18 @@ void main() async {
   
   runApp(
     const ProviderScope(
-      child: W40kArmyOptiApp(),
+      child: W40kCollectionApp(),
     ),
   );
 }
 
-class W40kArmyOptiApp extends StatelessWidget {
-  const W40kArmyOptiApp({super.key});
+class W40kCollectionApp extends StatelessWidget {
+  const W40kCollectionApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'W40K Army Optimizer',
+      title: 'W40K Collection Manager',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,

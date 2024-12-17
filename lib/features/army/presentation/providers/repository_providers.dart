@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/repositories/army_list_repository.dart';
+import '../../data/repositories/collection_repository.dart';
 import '../../data/repositories/datasheet_cost_repository.dart';
 import '../../data/repositories/datasheet_repository.dart';
 import '../../data/repositories/faction_repository.dart';
@@ -29,7 +29,7 @@ DatasheetCostRepository datasheetCostRepository(DatasheetCostRepositoryRef ref) 
 }
 
 @riverpod
-Future<ArmyListRepository> armyListRepository(ArmyListRepositoryRef ref) async {
+Future<CollectionRepository> collectionRepository(CollectionRepositoryRef ref) async {
   final prefs = await SharedPreferences.getInstance();
-  return ArmyListRepository(prefs);
+  return CollectionRepository(prefs);
 }

@@ -2,18 +2,18 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/models/unit.dart';
 
-class ArmyListRepository {
-  static const String _key = 'army_list';
+class CollectionRepository {
+  static const String _key = 'miniature_collection';
   final SharedPreferences _prefs;
 
-  ArmyListRepository(this._prefs);
+  CollectionRepository(this._prefs);
 
-  Future<void> saveArmyList(List<Unit> units) async {
+  Future<void> saveCollection(List<Unit> units) async {
     final jsonList = units.map((unit) => unit.toJson()).toList();
     await _prefs.setString(_key, jsonEncode(jsonList));
   }
 
-  Future<List<Unit>> loadArmyList() async {
+  Future<List<Unit>> loadCollection() async {
     final jsonString = _prefs.getString(_key);
     if (jsonString == null) return [];
 
@@ -26,7 +26,7 @@ class ArmyListRepository {
     }
   }
 
-  Future<void> clearArmyList() async {
+  Future<void> clearCollection() async {
     await _prefs.remove(_key);
   }
 }
