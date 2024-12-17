@@ -75,7 +75,7 @@ class HomePage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'This will generate an optimized army list using OpenRouter AI.',
+              'This will generate an army list using heretical magic. The Inquisition has been notified.',
               style: TextStyle(fontSize: 12),
             ),
           ],
