@@ -27,7 +27,6 @@ class OptimizationResult extends _$OptimizationResult {
   }
 
   Future<void> optimizeList(
-    String name,
     int pointsLimit, {
     Faction? faction,
     String? additionalInstructions,
@@ -45,9 +44,12 @@ class OptimizationResult extends _$OptimizationResult {
         additionalInstructions: additionalInstructions,
       );
       
-      // Parse the result to extract strategy and army list
+      // Parse the result to extract name, army list and strategy
+      final nameMatch = RegExp(r'Name:\s*(.+)').firstMatch(result);
+      final name = nameMatch?.group(1)?.trim() ?? 'Unnamed Army';
+      
       final parts = result.split('\n\nStrategy:');
-      final armyList = parts[0].trim();
+      final armyListPart = parts[0].replaceFirst(RegExp(r'Name:.*\n'), '').trim();
       final strategy = parts.length > 1 ? parts[1].trim() : 'No strategy provided';
 
       // Store the optimized army
@@ -55,7 +57,7 @@ class OptimizationResult extends _$OptimizationResult {
         name: name,
         description: additionalInstructions ?? 'Standard optimization',
         pointsLimit: pointsLimit,
-        armyList: armyList,
+        armyList: armyListPart,
         strategy: strategy,
         faction: faction,
       );

@@ -4,7 +4,7 @@ import '../../domain/models/faction.dart';
 class OptimizationParametersDialog extends StatefulWidget {
   final List<Faction> factions;
   final int pointsLimit;
-  final Function(String name, Faction? faction, String? instructions) onOptimize;
+  final Function(Faction? faction, String? instructions) onOptimize;
 
   const OptimizationParametersDialog({
     super.key,
@@ -19,12 +19,10 @@ class OptimizationParametersDialog extends StatefulWidget {
 
 class _OptimizationParametersDialogState extends State<OptimizationParametersDialog> {
   Faction? selectedFaction;
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _instructionsController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
     _instructionsController.dispose();
     super.dispose();
   }
@@ -44,17 +42,6 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Army Name:'),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter a name for this army list...',
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-            ),
-            const SizedBox(height: 16),
             const Text('Faction (optional):'),
             const SizedBox(height: 8),
             DropdownButtonFormField<Faction?>(
@@ -107,16 +94,13 @@ class _OptimizationParametersDialogState extends State<OptimizationParametersDia
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: _nameController.text.trim().isEmpty
-              ? null // Only disable if name is empty
-              : () {
-                  widget.onOptimize(
-                    _nameController.text.trim(),
-                    selectedFaction, // Can be null
-                    _instructionsController.text.isEmpty ? null : _instructionsController.text,
-                  );
-                  Navigator.of(context).pop();
-                },
+          onPressed: () {
+            widget.onOptimize(
+              selectedFaction,
+              _instructionsController.text.isEmpty ? null : _instructionsController.text,
+            );
+            Navigator.of(context).pop();
+          },
           child: const Text('Optimize'),
         ),
       ],
