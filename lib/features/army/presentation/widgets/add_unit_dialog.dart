@@ -5,6 +5,7 @@ import '../../domain/models/datasheet.dart';
 import '../../domain/models/faction.dart';
 import '../../domain/models/unit.dart';
 import '../providers/faction_provider.dart';
+import '../providers/dialog_faction_provider.dart';
 import '../providers/datasheet_provider.dart';
 
 class UnitSelectionDialog extends ConsumerStatefulWidget {
@@ -24,9 +25,19 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   String _notes = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize dialog faction with main page faction
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mainPageFaction = ref.read(selectedFactionProvider);
+      ref.read(dialogSelectedFactionProvider.notifier).select(mainPageFaction);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final factions = ref.watch(factionListProvider);
-    final selectedFaction = ref.watch(selectedFactionProvider);
+    final selectedFaction = ref.watch(dialogSelectedFactionProvider);
     final datasheets = ref.watch(filteredDatasheetListProvider);
 
     return Dialog(
@@ -70,8 +81,8 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                         )),
                   ],
                   onChanged: (faction) {
-                    // Update both the dialog and main page faction
-                    ref.read(selectedFactionProvider.notifier).select(faction);
+                    // Update only the dialog's faction
+                    ref.read(dialogSelectedFactionProvider.notifier).select(faction);
                     setState(() {
                       _selectedDatasheet = null;
                     });

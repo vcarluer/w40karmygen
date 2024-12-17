@@ -87,7 +87,7 @@ class _AddDatasheetDialogState extends ConsumerState<AddDatasheetDialog> {
                             .toLowerCase()
                             .contains(_searchQuery.toLowerCase());
                         final matchesFaction = selectedFaction == null ||
-                            datasheet.factionId == selectedFaction?.id;
+                            datasheet.factionId == selectedFaction.id;
                         return matchesSearch && matchesFaction;
                       }).toList();
 

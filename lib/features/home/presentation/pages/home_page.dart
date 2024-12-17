@@ -14,8 +14,9 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final factions = ref.watch(factionListProvider);
     final selectedFaction = ref.watch(selectedFactionProvider);
-    final army = ref.watch(armyListProvider);
-    final totalPoints = ref.watch(armyListProvider.notifier).getTotalPoints();
+    final armyProvider = ref.watch(armyListProvider.notifier);
+    final filteredArmy = armyProvider.getFilteredUnits(selectedFaction?.id);
+    final totalPoints = armyProvider.getTotalPoints();
 
     return Scaffold(
       appBar: AppBar(
@@ -93,14 +94,14 @@ class HomePage extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: army.isEmpty
+            child: filteredArmy.isEmpty
                 ? const Center(
                     child: Text('Add units to your army using the + button'),
                   )
                 : ListView.builder(
-                    itemCount: army.length,
+                    itemCount: filteredArmy.length,
                     itemBuilder: (context, index) {
-                      final unit = army[index];
+                      final unit = filteredArmy[index];
                       return ListTile(
                         title: Text(unit.datasheet.name),
                         subtitle: Text(

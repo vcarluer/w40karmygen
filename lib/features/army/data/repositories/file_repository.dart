@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
 
 class FileRepository {
   final String dataPath;
@@ -7,16 +7,21 @@ class FileRepository {
 
   Future<List<String>> readCsvLines(String fileName) async {
     try {
-      final file = File('$dataPath/$fileName');
-      if (!await file.exists()) {
-        throw FileSystemException('File not found: $fileName');
+      String content = await rootBundle.loadString('$dataPath/$fileName');
+      
+      // Remove BOM if present
+      if (content.startsWith('\uFEFF')) {
+        content = content.substring(1);
       }
       
-      final content = await file.readAsString();
       final lines = content.split('\n');
       
       // Skip header line and empty lines
-      return lines.where((line) => line.trim().isNotEmpty).skip(1).toList();
+      return lines
+        .where((line) => line.trim().isNotEmpty)
+        .skip(1)
+        .map((line) => line.trim())
+        .toList();
     } catch (e) {
       throw Exception('Error reading $fileName: $e');
     }

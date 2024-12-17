@@ -28,5 +28,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/data/factions.csv
-    - assets/data/datasheets.csv
+    - assets/data/Factions.csv
+    - assets/data/Datasheets.csv

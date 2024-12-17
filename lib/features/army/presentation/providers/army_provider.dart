@@ -1,30 +1,34 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../domain/models/datasheet.dart';
+import '../../domain/models/unit.dart';
 
 part 'army_provider.g.dart';
 
 @riverpod
 class ArmyList extends _$ArmyList {
   @override
-  List<Datasheet> build() {
+  List<Unit> build() {
     return [];
   }
 
-  void addDatasheet(Datasheet datasheet) {
-    state = [...state, datasheet];
+  void addUnit(Unit unit) {
+    state = [...state, unit];
   }
 
-  void removeDatasheet(String datasheetId) {
-    state = state.where((datasheet) => datasheet.id != datasheetId).toList();
+  void removeUnit(String unitId) {
+    state = state.where((unit) => unit.id != unitId).toList();
   }
 
-  List<Datasheet> getFilteredDatasheets(String? factionId) {
+  List<Unit> getFilteredUnits(String? factionId) {
     if (factionId == null) return state;
-    return state.where((datasheet) => datasheet.factionId == factionId).toList();
+    return state
+        .where((unit) => unit.datasheet.factionId == factionId)
+        .toList();
   }
 
-  void filterByFaction(String? factionId) {
-    if (factionId == null) return;
-    state = state.where((datasheet) => datasheet.factionId == factionId).toList();
+  int getTotalPoints() {
+    return state.fold<int>(
+      0,
+      (sum, unit) => sum + ((unit.points) * (unit.quantity)),
+    );
   }
 }

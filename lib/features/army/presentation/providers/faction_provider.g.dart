@@ -6,7 +6,7 @@ part of 'faction_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$factionListHash() => r'8b86ab58872ec12a38b945bb79a4d1612f32d544';
+String _$factionListHash() => r'9e67a1e44a7f55ece5770619dac5f299e548626e';
 
 /// See also [FactionList].
 @ProviderFor(FactionList)
@@ -21,7 +21,7 @@ final factionListProvider =
 );
 
 typedef _$FactionList = AutoDisposeAsyncNotifier<List<Faction>>;
-String _$selectedFactionHash() => r'd6872aa721b3f2d96597dae206dd9708bd469fb0';
+String _$selectedFactionHash() => r'5c4b8c6419861932a32c851d4d5251e67a8c3a52';
 
 /// See also [SelectedFaction].
 @ProviderFor(SelectedFaction)

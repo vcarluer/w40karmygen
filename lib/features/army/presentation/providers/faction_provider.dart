@@ -1,16 +1,35 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/repositories/faction_repository.dart';
-import '../../data/repositories/file_repository.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/faction.dart';
+import 'repository_providers.dart';
 
-final factionRepositoryProvider = Provider((ref) {
-  final fileRepo = FileRepository(dataPath: '/data');
-  return FactionRepository(fileRepository: fileRepo);
-});
+part 'faction_provider.g.dart';
 
-final factionListProvider = FutureProvider<List<Faction>>((ref) async {
-  final repository = ref.watch(factionRepositoryProvider);
-  return repository.loadFactions();
-});
+@riverpod
+class FactionList extends _$FactionList {
+  @override
+  Future<List<Faction>> build() async {
+    try {
+      final repository = ref.watch(factionRepositoryProvider);
+      final factions = await repository.loadFactions();
+      return factions;
+    } catch (e, stack) {
+      // Log the error for debugging
+      print('Error loading factions: $e\n$stack');
+      throw Exception('Failed to load factions: $e');
+    }
+  }
+}
 
-final selectedFactionProvider = StateProvider<Faction?>((ref) => null);
+@riverpod
+class SelectedFaction extends _$SelectedFaction {
+  @override
+  Faction? build() => null;
+
+  void select(Faction? faction) {
+    state = faction;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
