@@ -54,14 +54,6 @@ class HomePage extends ConsumerWidget {
 
   Future<void> _showGenerateDialog(BuildContext context, WidgetRef ref) async {
     await showGenerationDialog(context, ref);
-    if (context.mounted) {
-      // Navigate to generated armies page after generation
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const GeneratedArmiesPage(),
-        ),
-      );
-    }
   }
 
   @override
