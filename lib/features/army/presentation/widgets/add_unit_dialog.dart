@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../domain/models/datasheet.dart';
 import '../../domain/models/datasheet_cost.dart';
 import '../../domain/models/faction.dart';
@@ -9,6 +10,11 @@ import '../providers/faction_provider.dart';
 import '../providers/dialog_faction_provider.dart';
 import '../providers/datasheet_provider.dart';
 import '../providers/datasheet_cost_provider.dart';
+import '../../data/services/openrouter_service.dart';
+
+final openRouterServiceProvider = Provider((ref) => OpenRouterService(
+      apiKey: const String.fromEnvironment('OPENROUTER_API_KEY'),
+    ));
 
 class UnitSelectionDialog extends ConsumerStatefulWidget {
   const UnitSelectionDialog({
@@ -26,6 +32,7 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
   DatasheetCost? _selectedCost;
   int _quantity = 1;
   String _notes = '';
+  bool _isRecognizing = false;
 
   @override
   void initState() {
@@ -49,6 +56,52 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
         _selectedCost = costs.first;
         _pointsController.text = costs.first.cost.toString();
       });
+    }
+  }
+
+  Future<void> _pickAndRecognizeImage() async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _isRecognizing = true;
+        });
+
+        final bytes = await image.readAsBytes();
+        final openRouterService = ref.read(openRouterServiceProvider);
+        final unitName = await openRouterService.recognizeUnit(bytes);
+
+        // Find the datasheet with the matching name
+        final datasheets = ref.read(filteredDatasheetListProvider);
+        final matchingDatasheet = datasheets.firstWhere(
+          (datasheet) => datasheet.name.toLowerCase() == unitName.toLowerCase(),
+          orElse: () => throw Exception('Unit not found: $unitName'),
+        );
+
+        setState(() {
+          _selectedDatasheet = matchingDatasheet;
+          _isRecognizing = false;
+        });
+
+        // Auto-select first cost option
+        final costs = ref.read(datasheetCostNotifierProvider).value!
+            .where((cost) => cost.datasheetId == matchingDatasheet.id)
+            .toList();
+        _selectFirstCostOption(costs);
+      }
+    } catch (e) {
+      setState(() {
+        _isRecognizing = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error recognizing unit: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -111,6 +164,23 @@ class _UnitSelectionDialogState extends ConsumerState<UnitSelectionDialog> {
                 ),
                 loading: () => const CircularProgressIndicator(),
                 error: (error, stack) => Text('Error loading factions: $error'),
+              ),
+              const SizedBox(height: 16),
+              // Photo import button
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _isRecognizing ? null : _pickAndRecognizeImage,
+                  icon: _isRecognizing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.photo_camera),
+                  label: Text(_isRecognizing ? 'Recognizing...' : 'Import Photo'),
+                ),
               ),
               const SizedBox(height: 16),
               // Datasheets list
