@@ -58,20 +58,20 @@ class OpenRouterService {
           },
           {
             'role': 'user',
-            'content': [
-              {
-                'type': 'image',
-                'image': {
-                  'data': base64Image,
-                  'mime_type': 'image/jpeg'
+            'content': {
+              'type': 'text',
+              'parts': [
+                {
+                  'type': 'image/jpeg',
+                  'data': base64Image
+                },
+                {
+                  'type': 'text',
+                  'text': 'What is the exact name of this Warhammer 40,000 unit? Please provide only the exact unit name as it appears in the game data, without any additional text or explanation.'
                 }
-              },
-              {
-                'type': 'text',
-                'text': 'What is the exact name of this Warhammer 40,000 unit? Please provide only the exact unit name as it appears in the game data, without any additional text or explanation.',
-              },
-            ],
-          },
+              ]
+            }
+          }
         ],
       }),
     );
