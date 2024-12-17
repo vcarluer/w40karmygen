@@ -54,8 +54,10 @@ Future<void> showOptimizationDialog(BuildContext context, WidgetRef ref, int poi
     context: context,
     builder: (context) => OptimizationParametersDialog(
       factions: factions,
-      onOptimize: (faction, instructions) {
+      pointsLimit: pointsLimit,
+      onOptimize: (name, faction, instructions) {
         ref.read(optimizationResultProvider.notifier).optimizeList(
+          name,
           pointsLimit,
           faction: faction,
           additionalInstructions: instructions,

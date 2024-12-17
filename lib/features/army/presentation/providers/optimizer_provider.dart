@@ -6,6 +6,7 @@ import '../../domain/services/army_optimizer_service.dart';
 import '../../domain/models/faction.dart';
 import 'collection_provider.dart';
 import 'faction_provider.dart';
+import 'optimized_army_provider.dart';
 
 part 'optimizer_provider.g.dart';
 
@@ -26,6 +27,7 @@ class OptimizationResult extends _$OptimizationResult {
   }
 
   Future<void> optimizeList(
+    String name,
     int pointsLimit, {
     Faction? faction,
     String? additionalInstructions,
@@ -41,6 +43,21 @@ class OptimizationResult extends _$OptimizationResult {
         faction,
         pointsLimit,
         additionalInstructions: additionalInstructions,
+      );
+      
+      // Parse the result to extract strategy and army list
+      final parts = result.split('\n\nStrategy:');
+      final armyList = parts[0].trim();
+      final strategy = parts.length > 1 ? parts[1].trim() : 'No strategy provided';
+
+      // Store the optimized army
+      ref.read(optimizedArmiesProvider.notifier).addOptimizedArmy(
+        name: name,
+        description: additionalInstructions ?? 'Standard optimization',
+        pointsLimit: pointsLimit,
+        armyList: armyList,
+        strategy: strategy,
+        faction: faction,
       );
       
       state = AsyncValue.data(result);

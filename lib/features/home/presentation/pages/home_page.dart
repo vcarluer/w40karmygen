@@ -9,6 +9,7 @@ import '../../../army/presentation/providers/optimizer_provider.dart';
 import '../../../army/presentation/widgets/add_datasheet_dialog.dart';
 import '../../../army/presentation/widgets/add_unit_dialog.dart';
 import '../../../army/presentation/widgets/optimization_result_dialog.dart';
+import '../../../army/presentation/pages/optimized_armies_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -112,6 +113,17 @@ class HomePage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('W40K Miniature Collection'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.list),
+            tooltip: 'Optimized Armies',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const OptimizedArmiesPage(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.auto_awesome),
             tooltip: 'Optimize Army List',
