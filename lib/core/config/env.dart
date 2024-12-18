@@ -1,9 +1,22 @@
-// Environment configuration that supports both external env vars and local config
+import 'env.local.dart' deferred as env_local;
+
 class Env {
   static const String _kOpenRouterApiKey = String.fromEnvironment(
     'OPEN_ROUTER_API_KEY',
     defaultValue: '',
   );
+
+  static String? _cachedLocalApiKey;
+
+  static Future<void> loadLocalConfig() async {
+    try {
+      await env_local.loadLibrary();
+      _cachedLocalApiKey = env_local.EnvLocal.openRouterApiKey;
+    } catch (e) {
+      print('Warning: env.local.dart not found or invalid. Set OPEN_ROUTER_API_KEY environment variable or configure local environment.');
+      _cachedLocalApiKey = null;
+    }
+  }
 
   static String get openRouterApiKey {
     // First try environment variable
@@ -11,29 +24,12 @@ class Env {
       return _kOpenRouterApiKey;
     }
 
-    // Fallback to local config if available
-    try {
-      // Using deferred loading to avoid compile-time dependency
-      dynamic local = _getLocalConfig();
-      if (local != null && local.openRouterApiKey != null && local.openRouterApiKey.isNotEmpty) {
-        return local.openRouterApiKey;
-      }
-    } catch (e) {
-      print('Warning: env.local.dart not found or invalid. Set OPEN_ROUTER_API_KEY environment variable or configure local environment.');
+    // Then try cached local config
+    if (_cachedLocalApiKey != null && _cachedLocalApiKey!.isNotEmpty) {
+      return _cachedLocalApiKey!;
     }
 
     return '';
-  }
-
-  static dynamic _getLocalConfig() {
-    try {
-      // Dynamic import to avoid compile-time dependency
-      return const String.fromEnvironment('ENV_LOCAL') == ''
-          ? null
-          : throw UnimplementedError();
-    } catch (e) {
-      return null;
-    }
   }
 
   static bool get hasOpenRouterApiKey => openRouterApiKey.isNotEmpty;
