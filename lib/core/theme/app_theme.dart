@@ -29,22 +29,22 @@ class AppTheme {
         centerTitle: true,
         backgroundColor: abyssalBlack,
         foregroundColor: imperialGold,
-        elevation: 8,
+        elevation: 0,
       ),
       cardTheme: CardTheme(
         color: mechanicusGrey,
-        elevation: 4,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: imperialGold, width: 1),
+          borderRadius: BorderRadius.circular(4),
+          side: BorderSide.none,
         ),
       ),
       dialogTheme: DialogTheme(
         backgroundColor: abyssalBlack,
-        elevation: 16,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: imperialGold, width: 2),
+          borderRadius: BorderRadius.circular(4),
+          side: const BorderSide(color: imperialGold, width: 1),
         ),
       ),
       textTheme: const TextTheme(
@@ -74,15 +74,16 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: bloodRed,
           foregroundColor: purityWhite,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: imperialGold, width: 1),
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: bloodRed,
         foregroundColor: imperialGold,
+        elevation: 0,
       ),
     );
   }
