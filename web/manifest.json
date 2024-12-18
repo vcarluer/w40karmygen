@@ -1,11 +1,11 @@
 {
-    "name": "W40k Army Generator",
-    "short_name": "W40k Army",
+    "name": "Warhammer 40,000 Army Generator",
+    "short_name": "W40K Army",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Create and manage your Warhammer 40,000 armies",
+    "background_color": "#1A1A1A",
+    "theme_color": "#8B0000",
+    "description": "For the Emperor! Generate and optimize your Warhammer 40,000 armies with tactical precision",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

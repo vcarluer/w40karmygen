@@ -20,7 +20,7 @@ class HomePage extends ConsumerWidget {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit ${unit.datasheet.name} Quantity'),
+        title: Text('Requisition ${unit.datasheet.name}'),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
@@ -35,7 +35,7 @@ class HomePage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: const Text('Cancel Order'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -45,7 +45,7 @@ class HomePage extends ConsumerWidget {
                 Navigator.of(context).pop();
               }
             },
-            child: const Text('Save'),
+            child: const Text('Confirm Requisition'),
           ),
         ],
       ),
@@ -66,11 +66,18 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('W40k Army Generator'),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.military_tech),
+            SizedBox(width: 8),
+            Text('Imperial Army Registry'),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.list),
-            tooltip: 'Generated Armies',
+            icon: const Icon(Icons.history),
+            tooltip: 'Battle Records',
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -81,12 +88,12 @@ class HomePage extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.auto_awesome),
-            tooltip: 'Generate Army List',
+            tooltip: 'Deploy Forces',
             onPressed: () => _showGenerateDialog(context, ref),
           ),
           IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Add Unit',
+            icon: const Icon(Icons.add_circle),
+            tooltip: 'Requisition Units',
             onPressed: () async {
               final unit = await showDialog<Unit>(
                 context: context,
@@ -101,137 +108,199 @@ class HomePage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showGenerateDialog(context, ref),
-        icon: const Icon(Icons.auto_awesome),
-        label: const Text('Generate Army'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        icon: const Icon(Icons.military_tech),
+        label: const Text('Deploy Forces'),
         tooltip: 'Generate a new army list',
       ),
-      body: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Your personal unit collection',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              child: const Text(
+                'Imperial Armory Manifest',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: factions.when(
-                    data: (factionList) {
-                      if (factionList.isEmpty) {
-                        return const Center(
-                          child: Text('No factions available'),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  top: BorderSide(color: Theme.of(context).colorScheme.secondary, width: 1),
+                  bottom: BorderSide(color: Theme.of(context).colorScheme.secondary, width: 1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: factions.when(
+                      data: (factionList) {
+                        if (factionList.isEmpty) {
+                          return const Center(
+                            child: Text('No factions available in the Imperium'),
+                          );
+                        }
+                        return DropdownButton<Faction?>(
+                          value: selectedFaction,
+                          hint: const Text('Select Force'),
+                          isExpanded: true,
+                          dropdownColor: Theme.of(context).colorScheme.surface,
+                          items: [
+                            const DropdownMenuItem<Faction?>(
+                              value: null,
+                              child: Text('All Forces'),
+                            ),
+                            ...factionList.map((faction) => DropdownMenuItem(
+                                  value: faction,
+                                  child: Text(faction.name),
+                                )),
+                          ],
+                          onChanged: (faction) {
+                            ref.read(selectedFactionProvider.notifier).select(faction);
+                          },
                         );
-                      }
-                      return DropdownButton<Faction?>(
-                        value: selectedFaction,
-                        hint: const Text('Select Faction'),
-                        isExpanded: true,
-                        items: [
-                          const DropdownMenuItem<Faction?>(
-                            value: null,
-                            child: Text('All Factions'),
-                          ),
-                          ...factionList.map((faction) => DropdownMenuItem(
-                                value: faction,
-                                child: Text(faction.name),
-                              )),
-                        ],
-                        onChanged: (faction) {
-                          ref.read(selectedFactionProvider.notifier).select(faction);
-                        },
-                      );
-                    },
-                    error: (error, stackTrace) => Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.error_outline,
-                              size: 48, color: Colors.red),
-                          const SizedBox(height: 16),
-                          Text('Error loading factions: $error'),
-                        ],
+                      },
+                      error: (error, stackTrace) => Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.error_outline,
+                                size: 48, color: Theme.of(context).colorScheme.error),
+                            const SizedBox(height: 16),
+                            Text('Vox transmission error: $error'),
+                          ],
+                        ),
+                      ),
+                      loading: () => const Center(
+                        child: CircularProgressIndicator(),
                       ),
                     ),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(),
+                  ),
+                  const SizedBox(width: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).colorScheme.secondary),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Force Strength: $totalPoints',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  'Total Points: $totalPoints',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: collection.when(
-              data: (units) {
-                if (filteredCollection.isEmpty) {
-                  return const Center(
-                    child: Text('Add miniatures to your collection using the + button'),
-                  );
-                }
-                return ListView.builder(
-                  itemCount: filteredCollection.length,
-                  itemBuilder: (context, index) {
-                    final unit = filteredCollection[index];
-                    return ListTile(
-                      title: Text(unit.datasheet.name),
-                      subtitle: Text(
-                          '${unit.quantity}x - ${unit.points} points${unit.notes != null ? ' - ${unit.notes}' : ''}'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+            Expanded(
+              child: collection.when(
+                data: (units) {
+                  if (filteredCollection.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Total: ${unit.points * unit.quantity} points',
-                            style: Theme.of(context).textTheme.bodySmall,
+                          Icon(
+                            Icons.military_tech,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.secondary,
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showEditQuantityDialog(context, ref, unit),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () {
-                              ref
-                                  .read(miniatureCollectionProvider.notifier)
-                                  .removeUnit(unit.id);
-                            },
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Requisition new units for the Emperor\'s glory',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16),
                           ),
                         ],
                       ),
                     );
-                  },
-                );
-              },
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              error: (error, stackTrace) => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                    const SizedBox(height: 16),
-                    Text('Error loading collection: $error'),
-                  ],
+                  }
+                  return ListView.builder(
+                    itemCount: filteredCollection.length,
+                    itemBuilder: (context, index) {
+                      final unit = filteredCollection[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.shield,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                          title: Text(
+                            unit.datasheet.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            '${unit.quantity}x - ${unit.points} points${unit.notes != null ? '\nNotes: ${unit.notes}' : ''}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).colorScheme.secondary),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'Total: ${unit.points * unit.quantity}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.edit_document),
+                                tooltip: 'Modify Requisition',
+                                onPressed: () => _showEditQuantityDialog(context, ref, unit),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_forever),
+                                tooltip: 'Discharge Unit',
+                                onPressed: () {
+                                  ref
+                                      .read(miniatureCollectionProvider.notifier)
+                                      .removeUnit(unit.id);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                error: (error, stackTrace) => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error_outline,
+                          size: 48, color: Theme.of(context).colorScheme.error),
+                      const SizedBox(height: 16),
+                      Text('Armory access denied: $error'),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

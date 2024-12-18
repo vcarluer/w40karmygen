@@ -21,10 +21,10 @@ class W40kArmyGeneratorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'W40k Army Generator',
-      theme: AppTheme.lightTheme,
+      title: 'Warhammer 40,000 Army Generator',
+      theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark, // Force dark theme for W40K style
       debugShowCheckedModeBanner: false,
       home: const HomePage(),
     );
